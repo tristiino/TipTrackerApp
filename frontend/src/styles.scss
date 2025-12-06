@@ -1,0 +1,80 @@
+/* A simple reset to remove default browser styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* --- Light Theme (Default) --- */
+body, .light-theme {
+  --primary-color: #0d6efd;
+  --success-color: #198754;
+  --background-color: #f8f9fa;
+  --surface-color: #ffffff;
+  --text-color: #212529;
+  --text-light: #6c757d;
+  --border-color: #dee2e6;
+
+  background-color: var(--background-color);
+  color: var(--text-color);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* --- Dark Theme --- */
+.dark-theme {
+  --primary-color: #0d6efd;
+  --success-color: #20c997; // A brighter green for dark mode
+  --background-color: #121212;
+  --surface-color: #1e1e1e;
+  --text-color: #e9ecef;
+  --text-light: #adb5bd;
+  --border-color: #343a40;
+}
+
+/* New Vibrant Color Palette */
+:root {
+  --primary-color: #0d6efd;      /* A strong, vibrant blue */
+  --success-color: #198754;      /* A deep, confident green */
+  --background-color: #f8f9fa;   /* A very light, clean gray */
+  --surface-color: #ffffff;      /* For cards and surfaces */
+  --text-color: #212529;         /* A dark, readable charcoal */
+  --text-light: #6c757d;        /* For secondary text */
+  --border-color: #dee2e6;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  line-height: 1.6;
+  padding-bottom: 5rem;
+}
+
+.container {
+  max-width: 960px;
+  margin: 2rem auto; // Added more vertical margin
+  padding: 1.5rem;
+}
+
+h1, h2, h3 {
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+button {
+  cursor: pointer;
+  border: 1px solid transparent;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+
+/* --- Responsive Media Query --- */
+@media (max-width: 768px) {
+  .container {
+    margin: 1rem auto;
+    padding: 1rem;
+  }
+}

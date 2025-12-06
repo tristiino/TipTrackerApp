@@ -1,0 +1,66 @@
+// Use CSS variables for a consistent theme
+:host {
+  --primary-color: #4f46e5;
+  --text-color: #374151;
+  --nav-background: #ffffff;
+  --border-color: #e5e7eb;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--nav-background);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: var(--primary-color);
+
+  svg {
+    font-size: 2rem;
+  }
+  span {
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li a {
+    text-decoration: none;
+    color: var(--text-color);
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+      background-color: #f3f4f6;
+    }
+
+    &.active {
+      background-color: #eef2ff;
+      color: var(--primary-color);
+      font-weight: 600;
+    }
+  }
+}
+
+/* --- Responsive Styles for Mobile --- */
+@media (max-width: 768px) {
+  .navbar-brand span {
+    display: none; // Hides the brand text on small screens, leaving the logo
+  }
+}

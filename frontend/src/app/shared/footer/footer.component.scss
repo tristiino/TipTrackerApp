@@ -1,0 +1,47 @@
+.site-footer {
+  // --- Positioning ---
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  z-index: 100;
+
+  // --- The "Secretive" Look ---
+  color: rgba(55, 65, 81, 0.6); // Muted text color
+  background-color: rgba(255, 255, 255, 0.5); // Semi-transparent background
+  backdrop-filter: blur(10px); // This creates the "frosted glass" effect
+  border-top: 1px solid rgba(229, 231, 235, 0.6);
+  transition: all 0.3s ease-in-out; // Smooth transition for the hover effect
+
+  // --- Reveal on Hover ---
+  &:hover {
+    color: rgba(17, 24, 39, 1); // Text becomes fully opaque
+    background-color: rgba(255, 255, 255, 0.8); // Background becomes less transparent
+    border-top: 1px solid rgba(229, 231, 235, 1);
+  }
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between; // Pushes your name left and icon right
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-text {
+  font-size: 0.9rem;
+  strong {
+    font-weight: 600;
+  }
+}
+
+.contact-link {
+  color: inherit; // Icon inherits the footer's muted color
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: #4f46e5; // Icon turns brand color on hover
+  }
+}

@@ -1,0 +1,144 @@
+// This component will now inherit its colors from the global :root
+
+.tip-entry-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.form-card, .recent-tips-card {
+  background-color: var(--surface-color); // Use global variable
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+h2 {
+  color: var(--text-color);
+  margin-bottom: 1.5rem;
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-color);
+  svg {
+    color: var(--text-light);
+  }
+}
+
+input, textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background-color: #fff;
+  font-size: 1rem;
+  color: var(--text-color);
+  &:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25); // Blue focus ring
+  }
+}
+
+.shift-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  button {
+    border: 1px solid var(--border-color);
+    background-color: #fff;
+    &.active {
+      background-color: var(--primary-color); // Blue for active
+      color: #fff;
+      border-color: var(--primary-color);
+    }
+  }
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  button {
+    flex-grow: 1;
+    padding: 0.85rem;
+    font-weight: 600;
+    border-radius: 8px;
+  }
+  .submit-btn {
+    background-color: var(--success-color); // Green for submit
+    color: #fff;
+    border: none;
+    &:disabled {
+      background-color: #a3d9b8;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.recent-tips-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 1rem;
+
+  li {
+    display: flex;
+    align-items: center;
+    padding: 1rem 0;
+
+    &:not(:last-child) {
+      border-bottom: 1px solid var(--input-border);
+    }
+  }
+}
+
+.tip-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #eef2ff;
+  color: var(--primary-color);
+  margin-right: 1rem;
+}
+
+.tip-info {
+  flex-grow: 1;
+
+  .tip-date {
+    display: block;
+    font-weight: 500;
+    color: var(--text-color);
+  }
+  .tip-notes {
+    display: block;
+    font-size: 0.9rem;
+    color: #6b7280; // text-light
+  }
+}
+
+.tip-amount {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--success-color);
+}
+
+@media (max-width: 960px) {
+  .tip-entry-container {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,131 @@
+// Uses global CSS variables from styles.scss for theme consistency
+
+.reports-header {
+  margin-bottom: 2rem;
+  h2 { font-size: 2rem; }
+  p { color: var(--text-light); }
+}
+
+.card {
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.filter-card {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap; // Allows items to wrap on smaller screens
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  label {
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+  input {
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+  }
+  .btn-primary {
+    background-color: var(--primary-color);
+    color: #fff;
+    align-self: flex-end; // Aligns button with bottom of inputs
+    padding: 0.6rem 1.2rem;
+  }
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.summary-card {
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  .card-icon {
+    margin-bottom: 0.75rem;
+    color: var(--primary-color);
+    svg { font-size: 1.75rem; }
+  }
+  .card-title {
+    display: block;
+    color: var(--text-light);
+    font-size: 0.9rem;
+  }
+  .card-value {
+    display: block;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--text-color);
+  }
+  // Highlight the final earnings card
+  &.net-earnings {
+    background-color: var(--success-color);
+    color: #fff;
+    .card-icon, .card-title, .card-value {
+      color: #fff;
+    }
+  }
+}
+
+.entries-card {
+  h3 { margin-bottom: 1rem; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    th, td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+    th {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--text-light);
+    }
+    tbody tr:hover {
+      background-color: #f8f9fa;
+    }
+    .notes-cell {
+      max-width: 200px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+  .btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-light);
+    &:hover {
+      color: var(--primary-color);
+    }
+    &.btn-delete:hover {
+      color: #dc3545; // Red for delete action
+    }
+  }
+}
+
+.table-container {
+  overflow-x: auto; // Allows horizontal scrolling
+  -webkit-overflow-scrolling: touch; // Smooth scrolling on iOS
+}
+
+.no-entries-card {
+  text-align: center;
+  padding: 3rem;
+  font-style: italic;
+  color: var(--text-light);
+}

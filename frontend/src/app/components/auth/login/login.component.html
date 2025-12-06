@@ -1,0 +1,32 @@
+<div class="login-page-container">
+  <div class="login-card">
+    <h2>Login</h2>
+    <p class="greeting-message">
+      Welcome back! Please enter your credentials.
+    </p>
+
+    <form [formGroup]="loginForm" (ngSubmit)="login()">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" formControlName="email" required placeholder="you@example.com" />
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" formControlName="password" required placeholder="••••••••" />
+      </div>
+
+      <button type="submit" class="btn-submit" [disabled]="loginForm.invalid">Login</button>
+    </form>
+
+    <div class="message-container">
+      <p *ngIf="loginSuccess === true" class="success-message">
+        Login successful! Redirecting...
+      </p>
+      <p *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </p>
+    </div>
+
+  </div>
+</div>

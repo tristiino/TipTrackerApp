@@ -1,0 +1,88 @@
+// Uses global CSS variables from styles.scss for theme consistency
+.settings-header {
+  margin-bottom: 2rem;
+  h2 { font-size: 2rem; }
+  p { color: var(--text-light); }
+}
+
+.settings-card {
+  max-width: 600px; // A good width for a settings form
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 2rem;
+}
+
+// Each setting row (label + input/select)
+.form-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 0;
+
+  // Add a line between each setting for separation
+  &:not(:last-of-type) {
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  label {
+    font-weight: 500;
+    color: var(--text-color);
+  }
+
+  input, select {
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    width: 200px; // Give the inputs a fixed width
+  }
+}
+
+// Container for the form buttons
+.form-actions {
+  display: flex;
+  justify-content: flex-end; // Aligns buttons to the right
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-color);
+
+  .btn {
+    padding: 0.6rem 1.2rem;
+  }
+  .btn-secondary {
+    background-color: #e9ecef;
+    border-color: #e9ecef;
+    color: var(--text-color);
+    &:hover {
+      background-color: #dee2e6;
+    }
+  }
+  .btn-primary {
+    background-color: var(--primary-color);
+    color: #fff;
+  }
+}
+
+// Responsive styles for mobile
+@media (max-width: 768px) {
+  .settings-card {
+    padding: 1.5rem;
+  }
+  .form-group {
+    flex-direction: column; // Stack label and input vertically
+    align-items: flex-start; // Align to the start
+    gap: 0.75rem;
+
+    input, select {
+      width: 100%; // Make inputs take full width on mobile
+    }
+  }
+
+  .form-actions {
+    justify-content: stretch;
+    .btn {
+      flex-grow: 1; // Make buttons take up equal space
+    }
+  }
+}
