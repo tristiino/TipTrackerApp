@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://tiptrackerapp.org/api'
+  apiUrl: 'http://tiptrackerapp.org/api'
 };
