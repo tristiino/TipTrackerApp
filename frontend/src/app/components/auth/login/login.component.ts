@@ -31,18 +31,18 @@ export class LoginComponent implements OnInit {
   }
 
   /**
-   * On init, check for a ?registered=true query param (BUG-04) and subscribe
-   * to form value changes so the error message clears while the user types (BUG-03).
+   * On init, check for a ?registered=true query param and subscribe
+   * to form value changes so the error message clears while the user types.
    */
   ngOnInit(): void {
-    // BUG-04: show success banner when redirected after successful registration
+    // Show success banner when redirected after successful registration
     this.route.queryParams.subscribe(params => {
       if (params['registered'] === 'true') {
         this.successMessage = 'Account created successfully! Please log in.';
       }
     });
 
-    // BUG-03: clear stale error message as soon as the user starts editing
+    // Clear stale error message as soon as the user starts editing
     this.loginForm.valueChanges.subscribe(() => {
       this.errorMessage = '';
     });
