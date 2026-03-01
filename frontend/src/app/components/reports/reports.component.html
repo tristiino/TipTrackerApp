@@ -79,7 +79,7 @@
   </div>
 
   <ng-template #noEntries>
-    <div class="card no-entries-card" *ngIf="!isLoading">
+    <div class="card no-entries-card" *ngIf="!isLoading && !dateRangeError">
       <p>No tips found for this date range.</p>
     </div>
   </ng-template>
