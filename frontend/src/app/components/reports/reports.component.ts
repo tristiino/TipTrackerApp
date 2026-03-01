@@ -42,11 +42,9 @@ export class ReportsComponent implements OnInit {
    * for the currently logged-in user.
    */
   loadReport(): void {
-    // BUG-07: validate that start date is not after end date before calling the API.
-    // Use Date objects for comparison so the check is unambiguous.
     if (this.startDate && this.endDate && new Date(this.startDate) > new Date(this.endDate)) {
       this.dateRangeError = 'Start date cannot be after the end date.';
-      this.report = null;   // clear stale results so old data doesn't linger on screen
+      this.report = null;
       return;
     }
     this.dateRangeError = '';
