@@ -20,6 +20,9 @@
     </form>
 
     <div class="message-container">
+      <p *ngIf="successMessage" class="success-message">
+        {{ successMessage }}
+      </p>
       <p *ngIf="loginSuccess === true" class="success-message">
         Login successful! Redirecting...
       </p>

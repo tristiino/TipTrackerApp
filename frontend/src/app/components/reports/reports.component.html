@@ -14,6 +14,7 @@
       <input type="date" id="endDate" [(ngModel)]="endDate" />
     </div>
     <button class="btn-primary" (click)="loadReport()">View Report</button>
+    <p *ngIf="dateRangeError" class="date-range-error">{{ dateRangeError }}</p>
   </div>
 
   <div *ngIf="isLoading" class="loading-indicator">Loading report...</div>
@@ -78,7 +79,7 @@
   </div>
 
   <ng-template #noEntries>
-    <div class="card no-entries-card" *ngIf="!isLoading">
+    <div class="card no-entries-card" *ngIf="!isLoading && !dateRangeError">
       <p>No tips found for this date range.</p>
     </div>
   </ng-template>
