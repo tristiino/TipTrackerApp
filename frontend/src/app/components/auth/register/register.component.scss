@@ -85,3 +85,14 @@ h2 {
   font-weight: 500;
   margin-top: 0.25rem;
 }
+
+/* Container for server-side status messages */
+.message-container {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-weight: 500;
+
+  .error-message {
+    color: #dc3545;
+  }
+}

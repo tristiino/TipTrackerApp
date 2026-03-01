@@ -15,6 +15,7 @@ export class ReportsComponent implements OnInit {
   startDate: string;
   endDate: string;
   isLoading = false;
+  dateRangeError: string = '';
 
   constructor(
     private reportService: ReportService,
@@ -41,6 +42,13 @@ export class ReportsComponent implements OnInit {
    * for the currently logged-in user.
    */
   loadReport(): void {
+    if (this.startDate && this.endDate && new Date(this.startDate) > new Date(this.endDate)) {
+      this.dateRangeError = 'Start date cannot be after the end date.';
+      this.report = null;
+      return;
+    }
+    this.dateRangeError = '';
+
     const user = this.authService.getUser();
     if (!user || !user.id) {
       console.error('User not logged in or user ID is missing.');

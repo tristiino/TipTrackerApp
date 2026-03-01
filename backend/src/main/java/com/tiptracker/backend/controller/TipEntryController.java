@@ -36,19 +36,22 @@ public class TipEntryController {
     }
 
     /**
-     * Generates a report summary for a specific user within a given date range.
-     * @param userId The ID of the user for whom the report is generated.
+     * Generates a report summary for the currently authenticated user within a given date range.
+     * The {userId} path variable is kept for URL compatibility but is intentionally ignored —
+     * the user's identity is always derived from the authenticated JWT principal to prevent IDOR.
      * @param start The start date of the report period.
      * @param end The end date of the report period.
+     * @param principal The currently authenticated user, provided by Spring Security.
      * @return A DTO containing the report summary and list of tip entries.
      */
     @GetMapping("/user/{userId}/report")
     public ResponseEntity<ReportSummaryDTO> getReport(
             @PathVariable Long userId,
             @RequestParam("start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
-            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end
+            @RequestParam("end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
+            Principal principal
     ) {
-        return ResponseEntity.ok(service.getReportSummary(userId, start, end));
+        return ResponseEntity.ok(service.getReportSummary(principal.getName(), start, end));
     }
 
     /**

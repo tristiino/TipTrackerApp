@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
@@ -9,22 +9,42 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
 
   loginForm: FormGroup;
 
   errorMessage: string = '';
+  successMessage: string = '';
 
   loginSuccess: boolean | null = null;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required]
+    });
+  }
+
+  /**
+   * On init, check for a ?registered=true query param and subscribe
+   * to form value changes so the error message clears while the user types.
+   */
+  ngOnInit(): void {
+    // Show success banner when redirected after successful registration
+    this.route.queryParams.subscribe(params => {
+      if (params['registered'] === 'true') {
+        this.successMessage = 'Account created successfully! Please log in.';
+      }
+    });
+
+    // Clear stale error message as soon as the user starts editing
+    this.loginForm.valueChanges.subscribe(() => {
+      this.errorMessage = '';
     });
   }
 
