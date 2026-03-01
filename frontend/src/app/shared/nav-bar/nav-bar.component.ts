@@ -17,10 +17,15 @@ export class NavBarComponent implements OnInit {
   constructor(private router: Router, private authService: AuthService) {}
 
   /**
-   * On component initialization, gets the current user's data from the AuthService.
+   * On component initialization, subscribe reactively to isLoggedIn$ so that
+   * currentUser is refreshed whenever auth state changes (BUG-05).
+   * A one-time getUser() call would miss the user object when the navbar
+   * initialises before login completes.
    */
   ngOnInit(): void {
-    this.currentUser = this.authService.getUser();
+    this.authService.isLoggedIn$.subscribe(isLoggedIn => {
+      this.currentUser = isLoggedIn ? this.authService.getUser() : null;
+    });
   }
 
   /**

@@ -71,6 +71,21 @@ public class TipEntryService {
     }
 
     /**
+     * Generates a financial summary report for the authenticated user (identified by email)
+     * within a given date range. The user ID is resolved server-side from the email so that
+     * no user-supplied identifier can be used to access another user's data.
+     * @param userEmail The email of the authenticated user (derived from the JWT principal).
+     * @param start The start date of the report period.
+     * @param end The end date of the report period.
+     * @return A DTO containing the calculated summary and a list of tip entries.
+     */
+    public ReportSummaryDTO getReportSummary(String userEmail, LocalDate start, LocalDate end) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + userEmail));
+        return getReportSummary(user.getId(), start, end);
+    }
+
+    /**
      * Generates a financial summary report for a given user and date range.
      * @param userId The ID of the user for whom the report is generated.
      * @param start The start date of the report period.
