@@ -23,3 +23,4 @@ frontend/package-lock.json
 # IDEs
 .idea/
 *.iml
+.claude/
