@@ -94,3 +94,39 @@
     }
   }
   
+  // --- Features Section ---
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: $space-6;
+    max-width: $container-md;
+    margin: 0 auto;
+  
+    @media (max-width: $bp-tablet) {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  .feature-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: $space-4;
+    color: var(--primary-color);
+  }
+  
+  .feature-title {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semi;
+    margin-bottom: $space-2;
+  }
+  
+  .feature-description {
+    font-size: $font-size-sm;
+    color: var(--text-light);
+    line-height: $line-height-base;
+  }
+  
