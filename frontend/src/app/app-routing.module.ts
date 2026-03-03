@@ -6,10 +6,12 @@ import { TipEntryFormComponent } from './components/tip-entry-form/tip-entry-for
 import { SettingsComponent } from './components/settings/settings.component';
 import { ReportsComponent } from './components/reports/reports.component';
 import {AuthGuard} from "./guards/auth.guard";
+import { HomeComponent } from './components/home/home.component';
+
 
 const routes: Routes = [
   // Public routes
-  { path: '', redirectTo: '/login', pathMatch: 'full' },
+  { path: '', component: HomeComponent },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
 
