@@ -79,54 +79,92 @@
 
 // Secondary login link below the CTA
 .hero-login {
-    margin-top: $space-6;
-    font-size: $font-size-sm;
-    color: var(--text-light);
-  
-    a {
-      color: var(--primary-color);
-      font-weight: $font-weight-medium;
-      text-decoration: none;
-  
-      &:hover {
-        text-decoration: underline;
-      }
+  margin-top: $space-6;
+  font-size: $font-size-sm;
+  color: var(--text-light);
+
+  a {
+    color: var(--primary-color);
+    font-weight: $font-weight-medium;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
     }
   }
-  
-  // --- Features Section ---
+}
+
+// --- Features Section ---
 
 .features-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $space-6;
+  max-width: $container-md;
+  margin: 0 auto;
+
+  @media (max-width: $bp-tablet) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.feature-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: $space-4;
+  color: var(--primary-color);
+}
+
+.feature-title {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semi;
+  margin-bottom: $space-2;
+}
+
+.feature-description {
+  font-size: $font-size-sm;
+  color: var(--text-light);
+  line-height: $line-height-base;
+}
+
+// --- Screenshots Section ---
+
+.screenshots-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $space-8;
+  max-width: $container-md;
+  margin: 0 auto;
+
+  @media (max-width: $bp-tablet) {
+    grid-template-columns: 1fr;
     gap: $space-6;
-    max-width: $container-md;
-    margin: 0 auto;
-  
-    @media (max-width: $bp-tablet) {
-      grid-template-columns: 1fr;
+  }
+}
+
+.screenshot-item {
+  text-align: center;
+
+  img {
+    width: 100%;
+    height: auto;
+    border-radius: $radius-lg;
+    border: 1px solid var(--border-color);
+    box-shadow: $shadow-md;
+    transition: transform $transition-base, box-shadow $transition-base;
+
+    &:hover {
+      transform: scale(1.02);
+      box-shadow: $shadow-lg;
     }
   }
-  
-  .feature-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 3rem;
-    height: 3rem;
-    margin-bottom: $space-4;
-    color: var(--primary-color);
-  }
-  
-  .feature-title {
-    font-size: $font-size-lg;
-    font-weight: $font-weight-semi;
-    margin-bottom: $space-2;
-  }
-  
-  .feature-description {
-    font-size: $font-size-sm;
-    color: var(--text-light);
-    line-height: $line-height-base;
-  }
-  
+}
+
+.screenshot-caption {
+  margin-top: $space-4;
+  font-size: $font-size-sm;
+  color: var(--text-light);
+}
