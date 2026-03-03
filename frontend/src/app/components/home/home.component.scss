@@ -1,0 +1,96 @@
+@import '../../styles/_variables';
+
+// The hero section — fills the viewport below the nav
+.hero {
+  // Pull up to counteract the .container's top margin
+  margin-top: -2rem;
+
+  // Fill the available viewport height.
+  // 64px accounts for the nav bar height.
+  // This ensures the hero is "above the fold" —
+  // the user sees it without scrolling.
+  min-height: calc(100vh - 64px);
+
+  // Center all child content both horizontally and vertically
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  // Generous padding so content doesn't touch edges on mobile
+  padding: $space-16 $space-6;
+
+  @media (max-width: $bp-tablet) {
+    padding: $space-10 $space-4;
+    min-height: calc(100vh - 56px);
+  }
+}
+
+// Inner wrapper — constrains text width for readability
+.hero-content {
+  text-align: center;
+
+  // Optimal reading width. Lines longer than ~70 characters
+  // become hard to read. 640px keeps it comfortable.
+  max-width: $container-sm;
+}
+
+// The main headline
+.hero-title {
+  font-size: $font-size-3xl;
+  font-weight: $font-weight-bold;
+  line-height: $line-height-tight;
+  color: var(--text-color);
+  margin-bottom: $space-6;
+
+  @media (max-width: $bp-tablet) {
+    // Scale down on smaller screens so it doesn't
+    // overflow or look comically large
+    font-size: $font-size-2xl;
+  }
+}
+
+// Supporting description text
+.hero-subtitle {
+  font-size: $font-size-lg;
+  color: var(--text-light);
+  line-height: $line-height-loose;
+  margin-bottom: $space-10;
+}
+
+// The call-to-action button
+.hero-cta {
+  display: inline-block;
+  padding: $space-4 $space-10;
+  font-size: $font-size-md;
+  font-weight: $font-weight-semi;
+  color: #ffffff;
+  background-color: var(--primary-color);
+  border-radius: $radius-base;
+  text-decoration: none;
+  transition: all $transition-base;
+
+  &:hover {
+    background-color: $color-primary-hover;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: $shadow-md;
+  }
+}
+
+// Secondary login link below the CTA
+.hero-login {
+    margin-top: $space-6;
+    font-size: $font-size-sm;
+    color: var(--text-light);
+  
+    a {
+      color: var(--primary-color);
+      font-weight: $font-weight-medium;
+      text-decoration: none;
+  
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+  

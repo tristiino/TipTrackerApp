@@ -7,6 +7,7 @@ import { AppRoutingModule } from './app-routing.module';
 
 
 import { AppComponent } from './app.component';
+import { HomeComponent } from './components/home/home.component';
 import { LoginComponent } from './components/auth/login/login.component';
 import { RegisterComponent } from './components/auth/register/register.component';
 import { TipEntryFormComponent } from './components/tip-entry-form/tip-entry-form.component';
@@ -33,7 +34,8 @@ import { AuthGuard } from './guards/auth.guard';
     TipEntryFormComponent,
     LoginComponent,
     RegisterComponent,
-    LoginNavBarComponent
+    LoginNavBarComponent,
+    HomeComponent
   ],
   imports: [
     BrowserModule,
