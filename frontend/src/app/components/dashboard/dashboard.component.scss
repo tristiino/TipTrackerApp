@@ -1,0 +1,177 @@
+@import '../../../app/styles/variables';
+
+// ============================================
+// DASHBOARD — Component Styles
+// ============================================
+
+.dashboard-container {
+  max-width: $container-lg;
+  margin: $space-8 auto;
+  padding: 0 $space-6;
+
+  @media (max-width: $bp-tablet) {
+    margin: $space-4 auto;
+    padding: 0 $space-4;
+  }
+}
+
+// --- Dark chart card ---
+.chart-card {
+  background: linear-gradient(160deg, #0f172a 0%, #1e293b 100%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: $radius-lg;
+  padding: $space-6;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+// --- Header ---
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $space-4;
+  margin-bottom: $space-5;
+  flex-wrap: wrap;
+}
+
+.chart-title-group h2 {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semi;
+  color: #f1f5f9;
+  margin: 0 0 $space-1;
+}
+
+.chart-subtitle {
+  font-size: $font-size-sm;
+  color: #475569;
+  margin: 0;
+}
+
+// --- Metric toggle (top right) ---
+.metric-toggle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-2;
+
+  button {
+    padding: $space-1 $space-3;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+    color: #64748b;
+    background-color: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: $radius-full;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover {
+      color: var(--metric-color, #0d6efd);
+      border-color: var(--metric-color, #0d6efd);
+      background-color: rgba(255, 255, 255, 0.07);
+    }
+
+    &.active {
+      color: #fff;
+      background-color: var(--metric-color, #0d6efd);
+      border-color: var(--metric-color, #0d6efd);
+      font-weight: $font-weight-semi;
+    }
+  }
+}
+
+// --- Stats row ---
+.stats-row {
+  display: flex;
+  align-items: center;
+  gap: $space-6;
+  padding: $space-4 0;
+  margin-bottom: $space-4;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-wrap: wrap;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.stat-label {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.stat-value {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: #f1f5f9;
+  letter-spacing: -0.01em;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 40px;
+  background-color: rgba(255, 255, 255, 0.07);
+  flex-shrink: 0;
+
+  @media (max-width: $bp-tablet) {
+    display: none;
+  }
+}
+
+// --- Time range tabs (below stats, above chart) ---
+.time-range-tabs {
+  display: flex;
+  gap: $space-1;
+  margin-bottom: $space-5;
+
+  button {
+    padding: $space-1 $space-3;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+    color: #64748b;
+    background: transparent;
+    border: none;
+    border-radius: $radius-sm;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover {
+      color: #cbd5e1;
+      background-color: rgba(255, 255, 255, 0.06);
+    }
+
+    &.active {
+      color: #f1f5f9;
+      background-color: rgba(255, 255, 255, 0.1);
+      font-weight: $font-weight-semi;
+    }
+  }
+}
+
+// --- Chart area ---
+.chart-wrapper {
+  position: relative;
+  height: 280px;
+
+  @media (max-width: $bp-tablet) {
+    height: 220px;
+  }
+
+  canvas {
+    width: 100% !important;
+  }
+}
+
+.chart-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #475569;
+  font-size: $font-size-sm;
+}

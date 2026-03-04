@@ -1,0 +1,70 @@
+<div class="dashboard-container">
+
+  <div class="chart-card">
+
+    <!-- Header: title + metric toggles -->
+    <div class="chart-header">
+      <div class="chart-title-group">
+        <h2>Daily Earnings</h2>
+        <p class="chart-subtitle">Last {{ selectedDays }} days</p>
+      </div>
+      <div class="metric-toggle">
+        <button
+          *ngFor="let m of metrics"
+          [class.active]="activeMetric === m.key"
+          [style.--metric-color]="m.color"
+          (click)="setMetric(m.key)">
+          {{ m.label }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="stats-row" *ngIf="!isLoading">
+      <div class="stat">
+        <span class="stat-label">{{ activeMetricDef.label }}</span>
+        <span class="stat-value" [style.color]="activeMetricDef.color">
+          ${{ periodTotal | number:'1.2-2' }}
+        </span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-label">Days with tips</span>
+        <span class="stat-value">{{ activeDays }}</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat">
+        <span class="stat-label">Avg per day</span>
+        <span class="stat-value">
+          ${{ (activeDays > 0 ? periodTotal / activeDays : 0) | number:'1.2-2' }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Time range tabs -->
+    <div class="time-range-tabs">
+      <button
+        *ngFor="let r of timeRanges"
+        [class.active]="selectedDays === r.days"
+        (click)="loadData(r.days)">
+        {{ r.label }}
+      </button>
+    </div>
+
+    <!-- Chart -->
+    <div class="chart-wrapper">
+      <div *ngIf="isLoading" class="chart-loading">
+        <span>Loading…</span>
+      </div>
+      <canvas
+        *ngIf="!isLoading"
+        baseChart
+        [data]="chartData"
+        [options]="chartOptions"
+        [type]="chartType">
+      </canvas>
+    </div>
+
+  </div>
+
+</div>

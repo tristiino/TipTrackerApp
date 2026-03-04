@@ -1,5 +1,6 @@
 package com.tiptracker.backend.controller;
 
+import com.tiptracker.backend.dto.DailyEarningsDTO;
 import com.tiptracker.backend.dto.ReportSummaryDTO;
 import com.tiptracker.backend.dto.TipEntryDTO;
 import com.tiptracker.backend.model.TipEntry;
@@ -52,6 +53,19 @@ public class TipEntryController {
             Principal principal
     ) {
         return ResponseEntity.ok(service.getReportSummary(principal.getName(), start, end));
+    }
+
+    /**
+     * Returns daily aggregated tip earnings for the last N days for the authenticated user.
+     * @param days      Number of days to look back (default: 30).
+     * @param principal The currently authenticated user.
+     * @return A list of DailyEarningsDTO sorted ascending by date.
+     */
+    @GetMapping("/earnings/daily")
+    public ResponseEntity<List<DailyEarningsDTO>> getDailyEarnings(
+            @RequestParam(defaultValue = "30") int days,
+            Principal principal) {
+        return ResponseEntity.ok(service.getDailyEarnings(principal.getName(), days));
     }
 
     /**
