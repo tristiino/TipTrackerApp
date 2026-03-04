@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { ChartConfiguration, ChartData, ChartType } from 'chart.js';
+import { ChartConfiguration, ChartData, ChartOptions, ChartType } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
+import { forkJoin } from 'rxjs';
 import { TipService } from '../../services/tip.service';
 
 interface Metric {
@@ -30,18 +31,26 @@ export class DashboardComponent implements OnInit {
   activeMetric = 'total';
   selectedDays = 30;
   isLoading = true;
+
+  // Chart stats (from daily earnings data)
   periodTotal = 0;
-  activeDays = 0;
+  activeDays  = 0;
+
+  // Breakdown totals for doughnut chart
+  totalCash   = 0;
+  totalCredit = 0;
+
+  // Summary cards (from /summary endpoint)
+  summary: any = null;
 
   private rawData: any[] = [];
 
   timeRanges: TimeRange[] = [
-    { label: '7 Days',   days: 7  },
-    { label: '2 Weeks',  days: 14 },
-    { label: '30 Days',  days: 30 },
+    { label: '7 Days',  days: 7  },
+    { label: '2 Weeks', days: 14 },
+    { label: '30 Days', days: 30 },
   ];
 
-  // Site design-system colors (matching _variables.scss palette)
   metrics: Metric[] = [
     { key: 'total',  label: 'Total Tips',   datasetIndex: 0, color: '#0d6efd', bgColor: 'rgba(13, 110, 253, 0.12)',  dataKey: 'totalTips'   },
     { key: 'cash',   label: 'Cash',         datasetIndex: 1, color: '#198754', bgColor: 'rgba(25, 135, 84, 0.12)',   dataKey: 'cashTips'    },
@@ -121,10 +130,7 @@ export class DashboardComponent implements OnInit {
   chartOptions: ChartConfiguration['options'] = {
     responsive: true,
     maintainAspectRatio: false,
-    interaction: {
-      mode: 'index',
-      intersect: false,
-    },
+    interaction: { mode: 'index', intersect: false },
     plugins: {
       legend: { display: false },
       tooltip: {
@@ -143,20 +149,47 @@ export class DashboardComponent implements OnInit {
       x: {
         grid: { display: false },
         border: { display: false },
-        ticks: {
-          maxTicksLimit: 8,
-          color: '#64748b',
-          font: { size: 11 },
-        },
+        ticks: { maxTicksLimit: 8, color: '#64748b', font: { size: 11 } },
       },
       y: {
         beginAtZero: true,
         grid: { color: 'rgba(255,255,255,0.06)' },
         border: { display: false },
-        ticks: {
-          color: '#64748b',
-          font: { size: 11 },
-          callback: (value) => `$${value}`,
+        ticks: { color: '#64748b', font: { size: 11 }, callback: (v) => `$${v}` },
+      },
+    },
+  };
+
+  doughnutData: ChartData<'doughnut'> = {
+    labels: ['Cash', 'Credit'],
+    datasets: [{
+      data: [0, 0],
+      backgroundColor: ['#198754', '#0d6efd'],
+      hoverBackgroundColor: ['#157347', '#0b5ed7'],
+      borderWidth: 0,
+      hoverOffset: 4,
+    }],
+  };
+
+  doughnutOptions: ChartOptions<'doughnut'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '68%',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: 'rgba(15, 23, 42, 0.95)',
+        titleColor: '#94a3b8',
+        bodyColor: '#f1f5f9',
+        borderColor: 'rgba(255,255,255,0.1)',
+        borderWidth: 1,
+        padding: 12,
+        callbacks: {
+          label: (ctx) => {
+            const total = (ctx.dataset.data as number[]).reduce((a, b) => a + b, 0);
+            const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : '0.0';
+            return ` ${ctx.label}: $${(ctx.parsed ?? 0).toFixed(2)} (${pct}%)`;
+          },
         },
       },
     },
@@ -171,20 +204,26 @@ export class DashboardComponent implements OnInit {
   loadData(days: number): void {
     this.selectedDays = days;
     this.isLoading = true;
-    this.tipService.getDailyEarnings(days).subscribe({
-      next: (data) => {
-        this.rawData = data;
+
+    forkJoin({
+      earnings: this.tipService.getDailyEarnings(days),
+      summary:  this.tipService.getDashboardSummary(days),
+    }).subscribe({
+      next: ({ earnings, summary }) => {
+        this.rawData = earnings;
+        this.summary = summary;
+
         this.chartData = {
           ...this.chartData,
-          labels: data.map((d: any) => this.formatDate(d.date)),
+          labels: earnings.map((d: any) => this.formatDate(d.date)),
           datasets: [
-            { ...this.chartData.datasets[0], data: data.map((d: any) => d.totalTips) },
-            { ...this.chartData.datasets[1], data: data.map((d: any) => d.cashTips) },
-            { ...this.chartData.datasets[2], data: data.map((d: any) => d.creditTips) },
-            { ...this.chartData.datasets[3], data: data.map((d: any) => d.netEarnings) },
+            { ...this.chartData.datasets[0], data: earnings.map((d: any) => d.totalTips)   },
+            { ...this.chartData.datasets[1], data: earnings.map((d: any) => d.cashTips)    },
+            { ...this.chartData.datasets[2], data: earnings.map((d: any) => d.creditTips)  },
+            { ...this.chartData.datasets[3], data: earnings.map((d: any) => d.netEarnings) },
           ],
         };
-        // Re-apply hidden state after data reload
+
         setTimeout(() => {
           this.metrics.forEach((m, i) => {
             const meta = this.chart?.chart?.getDatasetMeta(i);
@@ -192,11 +231,13 @@ export class DashboardComponent implements OnInit {
           });
           this.chart?.chart?.update();
         });
+
         this.updateStats();
+        this.updateBreakdown();
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('Failed to load daily earnings', err);
+        console.error('Failed to load dashboard data', err);
         this.isLoading = false;
       },
     });
@@ -212,11 +253,20 @@ export class DashboardComponent implements OnInit {
     this.updateStats();
   }
 
+  private updateBreakdown(): void {
+    this.totalCash   = this.rawData.reduce((s, d) => s + (d.cashTips   ?? 0), 0);
+    this.totalCredit = this.rawData.reduce((s, d) => s + (d.creditTips ?? 0), 0);
+    this.doughnutData = {
+      ...this.doughnutData,
+      datasets: [{ ...this.doughnutData.datasets[0], data: [this.totalCash, this.totalCredit] }],
+    };
+  }
+
   private updateStats(): void {
     const m = this.activeMetricDef;
     const values: number[] = this.rawData.map(d => d[m.dataKey] ?? 0);
     this.periodTotal = values.reduce((sum, v) => sum + v, 0);
-    this.activeDays = values.filter(v => v > 0).length;
+    this.activeDays  = values.filter(v => v > 0).length;
   }
 
   private formatDate(dateStr: string): string {
