@@ -6,7 +6,9 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { AppRoutingModule } from './app-routing.module';
 
 
+import { NgChartsModule } from 'ng2-charts';
 import { AppComponent } from './app.component';
+import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { HomeComponent } from './components/home/home.component';
 import { LoginComponent } from './components/auth/login/login.component';
 import { RegisterComponent } from './components/auth/register/register.component';
@@ -27,6 +29,7 @@ import { AuthGuard } from './guards/auth.guard';
 @NgModule({
   declarations: [
     AppComponent,
+    DashboardComponent,
     ReportsComponent,
     SettingsComponent,
     NavBarComponent,
@@ -43,6 +46,7 @@ import { AuthGuard } from './guards/auth.guard';
     HttpClientModule,
     FormsModule,
     ReactiveFormsModule,
+    NgChartsModule,
     AppRoutingModule
   ],
   providers: [

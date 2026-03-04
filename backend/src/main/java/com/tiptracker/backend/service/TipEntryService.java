@@ -1,5 +1,6 @@
 package com.tiptracker.backend.service;
 
+import com.tiptracker.backend.dto.DailyEarningsDTO;
 import com.tiptracker.backend.dto.ReportSummaryDTO;
 import com.tiptracker.backend.dto.TipEntryDTO;
 import com.tiptracker.backend.model.TipEntry;
@@ -11,7 +12,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -153,6 +156,40 @@ public class TipEntryService {
         summary.setNetEarnings(netEarnings);
 
         return summary;
+    }
+
+    /**
+     * Returns daily aggregated tip earnings for the last N days for a given user.
+     * Days with no tips are included as zero-value entries so the chart is continuous.
+     * @param userEmail The email of the authenticated user.
+     * @param days      The number of days to look back (e.g. 30).
+     * @return A list of DailyEarningsDTO sorted ascending by date.
+     */
+    public List<DailyEarningsDTO> getDailyEarnings(String userEmail, int days) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + userEmail));
+
+        LocalDate end = LocalDate.now();
+        LocalDate start = end.minusDays(days - 1);
+
+        List<TipEntry> tips = tipEntryRepository.findByUserIdAndDateBetween(user.getId(), start, end);
+
+        // Group tips by date and aggregate amounts
+        Map<LocalDate, List<TipEntry>> byDate = tips.stream()
+                .collect(Collectors.groupingBy(TipEntry::getDate));
+
+        List<DailyEarningsDTO> result = new ArrayList<>();
+        for (LocalDate day = start; !day.isAfter(end); day = day.plusDays(1)) {
+            List<TipEntry> dayTips = byDate.getOrDefault(day, List.of());
+            double total   = dayTips.stream().mapToDouble(TipEntry::getAmount).sum();
+            double cash    = dayTips.stream().mapToDouble(t -> t.getCashTips()   != null ? t.getCashTips()   : 0.0).sum();
+            double credit  = dayTips.stream().mapToDouble(t -> t.getCreditTips() != null ? t.getCreditTips() : 0.0).sum();
+            double tipShare = total * TIP_SHARE_RATE;
+            double gross    = total - tipShare;
+            double net      = gross - (gross * TAX_RATE);
+            result.add(new DailyEarningsDTO(day, total, cash, credit, net));
+        }
+        return result;
     }
 
     /**
