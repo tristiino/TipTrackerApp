@@ -1,6 +1,7 @@
 package com.tiptracker.backend.service;
 
 import com.tiptracker.backend.dto.DailyEarningsDTO;
+import com.tiptracker.backend.dto.DashboardSummaryDTO;
 import com.tiptracker.backend.dto.ReportSummaryDTO;
 import com.tiptracker.backend.dto.TipEntryDTO;
 import com.tiptracker.backend.model.TipEntry;
@@ -190,6 +191,36 @@ public class TipEntryService {
             result.add(new DailyEarningsDTO(day, total, cash, credit, net));
         }
         return result;
+    }
+
+    /**
+     * Returns aggregated summary stats for the dashboard over a rolling N-day window.
+     * @param userEmail The email of the authenticated user.
+     * @param days      The number of days to look back.
+     * @return A DashboardSummaryDTO with totals, shift count, and hourly wage estimate.
+     */
+    public DashboardSummaryDTO getDashboardSummary(String userEmail, int days) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + userEmail));
+
+        LocalDate end   = LocalDate.now();
+        LocalDate start = end.minusDays(days - 1);
+        List<TipEntry> tips = tipEntryRepository.findByUserIdAndDateBetween(user.getId(), start, end);
+
+        double totalTips    = tips.stream().mapToDouble(TipEntry::getAmount).sum();
+        double tipShare     = totalTips * TIP_SHARE_RATE;
+        double gross        = totalTips - tipShare;
+        double netEarnings  = gross - (gross * TAX_RATE);
+        int    shifts       = tips.size();
+        double avgPerShift  = shifts > 0 ? totalTips / shifts : 0.0;
+
+        double totalHours   = tips.stream()
+                .filter(t -> t.getHoursWorked() != null && t.getHoursWorked() > 0)
+                .mapToDouble(TipEntry::getHoursWorked)
+                .sum();
+        double hourlyWage   = totalHours > 0 ? totalTips / totalHours : 0.0;
+
+        return new DashboardSummaryDTO(totalTips, netEarnings, shifts, avgPerShift, totalHours, hourlyWage);
     }
 
     /**

@@ -52,4 +52,12 @@ export class TipService {
   getDailyEarnings(days: number = 30): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/earnings/daily?days=${days}`);
   }
+
+  /**
+   * Fetches aggregated summary stats for the dashboard (totals, shifts, hourly wage).
+   * @param days Number of days to look back (default 30).
+   */
+  getDashboardSummary(days: number = 30): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/summary?days=${days}`);
+  }
 }

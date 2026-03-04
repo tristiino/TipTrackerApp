@@ -1,6 +1,7 @@
 package com.tiptracker.backend.controller;
 
 import com.tiptracker.backend.dto.DailyEarningsDTO;
+import com.tiptracker.backend.dto.DashboardSummaryDTO;
 import com.tiptracker.backend.dto.ReportSummaryDTO;
 import com.tiptracker.backend.dto.TipEntryDTO;
 import com.tiptracker.backend.model.TipEntry;
@@ -53,6 +54,19 @@ public class TipEntryController {
             Principal principal
     ) {
         return ResponseEntity.ok(service.getReportSummary(principal.getName(), start, end));
+    }
+
+    /**
+     * Returns aggregated summary stats (totals, shift count, hourly wage) for the dashboard.
+     * @param days      Number of days to look back (default: 30).
+     * @param principal The currently authenticated user.
+     * @return A DashboardSummaryDTO.
+     */
+    @GetMapping("/summary")
+    public ResponseEntity<DashboardSummaryDTO> getDashboardSummary(
+            @RequestParam(defaultValue = "30") int days,
+            Principal principal) {
+        return ResponseEntity.ok(service.getDashboardSummary(principal.getName(), days));
     }
 
     /**
