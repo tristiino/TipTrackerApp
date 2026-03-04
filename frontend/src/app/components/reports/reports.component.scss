@@ -36,8 +36,19 @@
   .btn-primary {
     background-color: var(--primary-color);
     color: #fff;
-    align-self: flex-end; // Aligns button with bottom of inputs
+    align-self: flex-end;
     padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out, transform 0.15s ease-in-out;
+
+    &:hover {
+      background-color: #0b5ed7;
+      transform: translateY(-1px);
+    }
   }
 }
 
@@ -128,6 +139,33 @@
   padding: 3rem;
   font-style: italic;
   color: var(--text-light);
+}
+
+.export-section {
+  text-align: right;
+  margin-bottom: 2rem;
+
+  button {
+    background-color: var(--primary-color);
+    color: #fff;
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out, transform 0.15s ease-in-out;
+
+    &:hover:not(:disabled) {
+      background-color: #0b5ed7;
+      transform: translateY(-1px);
+    }
+
+    &:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+  }
 }
 
 .date-range-error {

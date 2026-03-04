@@ -35,11 +35,32 @@ public class TipEntryService {
      * @return The saved TipEntry entity.
      */
     public TipEntry saveTip(TipEntry tip, String userEmail) {
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + userEmail));
-        tip.setUser(user);
-        return tipEntryRepository.save(tip);
+    User user = userRepository.findByEmail(userEmail)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + userEmail));
+    tip.setUser(user);
+
+    // Validate cash/credit fields and compute total amount
+    double cash = tip.getCashTips() != null ? tip.getCashTips() : 0.0;
+    double credit = tip.getCreditTips() != null ? tip.getCreditTips() : 0.0;
+
+    if (cash < 0 || credit < 0) {
+        throw new IllegalArgumentException("Tip amounts cannot be negative.");
     }
+
+    // Calculate total amount
+    if (tip.getCashTips() != null || tip.getCreditTips() != null) {
+        tip.setAmount(cash + credit);
+    }
+
+    // Calculate hours worked
+    if (tip.getStartTime() != null && tip.getEndTime() != null) {
+        long minutes = java.time.Duration.between(tip.getStartTime(), tip.getEndTime()).toMinutes();
+        tip.setHoursWorked(minutes / 60.0);
+    }
+
+    return tipEntryRepository.save(tip);
+}
+
 
     /**
      * Updates an existing tip entry by its ID.
@@ -55,6 +76,12 @@ public class TipEntryService {
         existingTip.setDate(tipDetails.getDate());
         existingTip.setShiftType(tipDetails.getShiftType());
         existingTip.setNotes(tipDetails.getNotes());
+        existingTip.setCashTips(tipDetails.getCashTips());
+        existingTip.setCreditTips(tipDetails.getCreditTips());
+        existingTip.setStartTime(tipDetails.getStartTime());
+        existingTip.setEndTime(tipDetails.getEndTime());
+        existingTip.setHoursWorked(tipDetails.getHoursWorked());
+
 
         return tipEntryRepository.save(existingTip);
     }
@@ -102,6 +129,11 @@ public class TipEntryService {
             dto.setDate(tip.getDate());
             dto.setNotes(tip.getNotes());
             dto.setShiftType(tip.getShiftType());
+            dto.setCashTips(tip.getCashTips());
+            dto.setCreditTips(tip.getCreditTips());
+            dto.setStartTime(tip.getStartTime());
+            dto.setEndTime(tip.getEndTime());
+            dto.setHoursWorked(tip.getHoursWorked());
             dto.setTipShare(tip.getAmount() * TIP_SHARE_RATE);
             return dto;
         }).collect(Collectors.toList());
@@ -141,6 +173,11 @@ public class TipEntryService {
             dto.setDate(tip.getDate());
             dto.setNotes(tip.getNotes());
             dto.setShiftType(tip.getShiftType());
+            dto.setCashTips(tip.getCashTips());
+            dto.setCreditTips(tip.getCreditTips());
+            dto.setStartTime(tip.getStartTime());
+            dto.setEndTime(tip.getEndTime());
+            dto.setHoursWorked(tip.getHoursWorked());
             dto.setTipShare(tip.getAmount() * TIP_SHARE_RATE);
             return dto;
         }).collect(Collectors.toList());
