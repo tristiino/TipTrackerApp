@@ -1,105 +1,325 @@
-// This component will now inherit its colors from the global :root
+@import '../../../app/styles/variables';
 
+// ============================================
+// TIP ENTRY FORM — Component Styles
+// ============================================
+
+// --- Page layout ---
+// Two columns on desktop, stacked on tablet.
 .tip-entry-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+  gap: $space-6;
+  max-width: $container-md;
+  margin: $space-8 auto;
+  padding: 0 $space-6;
+
+  @media (max-width: $bp-tablet) {
+    grid-template-columns: 1fr;
+    margin: $space-4 auto;
+    padding: 0 $space-4;
+  }
 }
 
-.form-card, .recent-tips-card {
-  background-color: var(--surface-color); // Use global variable
+// --- Cards ---
+.form-card,
+.recent-tips-card {
+  background-color: var(--surface-color);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-radius: $radius-lg;
+  padding: $space-6;
+  box-shadow: $shadow-base;
 }
 
+// --- Form headings ---
 h2 {
-  color: var(--text-color);
-  margin-bottom: 1.5rem;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semi;
+  margin-bottom: $space-6;
 }
 
+// --- Form groups ---
 .form-group {
-  margin-bottom: 1.25rem;
+  margin-bottom: $space-5;
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    margin-bottom: $space-2;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: var(--text-color);
+
+    svg {
+      flex-shrink: 0;
+      color: var(--text-light);
+    }
+  }
+
+  input[type="text"],
+  input[type="number"],
+  input[type="date"],
+  input[type="time"],
+  textarea {
+    width: 100%;
+    padding: $space-3 $space-4;
+    font-family: $font-family-base;
+    font-size: $font-size-base;
+    color: var(--text-color);
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: $radius-base;
+    transition: border-color $transition-fast, box-shadow $transition-fast;
+
+    &:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px $color-primary-light;
+    }
+
+    &::placeholder {
+      color: var(--text-light);
+    }
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
 }
 
-label {
+// --- Cash / Credit tip input layout (P1-007) ---
+.tip-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-3;
+  margin-bottom: $space-3;
+}
+
+.tip-input-group {
   display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.tip-input-label {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semi;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+// Real-time total display (P1-008)
+.tip-total {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 0.5rem;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-  color: var(--text-color);
-  svg {
-    color: var(--text-light);
-  }
-}
-
-input, textarea {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
+  padding: $space-3 $space-4;
+  background-color: var(--background-color);
   border: 1px solid var(--border-color);
-  background-color: #fff;
-  font-size: 1rem;
-  color: var(--text-color);
-  &:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25); // Blue focus ring
-  }
+  border-radius: $radius-base;
 }
 
+.tip-total-label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semi;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tip-total-value {
+  font-size: $font-size-md;
+  font-weight: $font-weight-bold;
+  color: var(--success-color);
+}
+
+// --- Shift type toggle buttons ---
 .shift-buttons {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.75rem;
+  gap: $space-2;
+
   button {
+    padding: $space-2 $space-5;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: var(--text-color);
+    background-color: transparent;
     border: 1px solid var(--border-color);
-    background-color: #fff;
-    &.active {
-      background-color: var(--primary-color); // Blue for active
-      color: #fff;
+    border-radius: $radius-full;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover {
       border-color: var(--primary-color);
+      color: var(--primary-color);
+    }
+
+    &.active {
+      background-color: var(--primary-color);
+      border-color: var(--primary-color);
+      color: #ffffff;
     }
   }
 }
 
+// --- Shift time inputs (P1-009) ---
+.optional-label {
+  font-weight: $font-weight-normal;
+  color: var(--text-light);
+  font-size: $font-size-xs;
+}
+
+.time-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-3;
+  margin-bottom: $space-3;
+}
+
+.time-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.time-input-label {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semi;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hours-calculated {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-3 $space-4;
+  background-color: var(--background-color);
+  border: 1px solid var(--border-color);
+  border-radius: $radius-base;
+}
+
+.hours-label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semi;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hours-value {
+  font-size: $font-size-md;
+  font-weight: $font-weight-bold;
+  color: var(--primary-color);
+}
+
+// --- Form action buttons ---
 .form-actions {
   display: flex;
-  gap: 1rem;
-  margin-top: 1.5rem;
-  button {
-    flex-grow: 1;
-    padding: 0.85rem;
-    font-weight: 600;
-    border-radius: 8px;
+  justify-content: flex-end;
+  align-items: center;
+  gap: $space-3;
+  margin-top: $space-6;
+  padding-top: $space-5;
+  border-top: 1px solid var(--border-color);
+}
+
+.cancel-btn {
+  padding: $space-2 $space-5;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  color: var(--text-light);
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  border-radius: $radius-base;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover {
+    background-color: var(--background-color);
+    color: var(--text-color);
   }
-  .submit-btn {
-    background-color: var(--success-color); // Green for submit
-    color: #fff;
-    border: none;
-    &:disabled {
-      background-color: #a3d9b8;
-      cursor: not-allowed;
-    }
+}
+
+.submit-btn {
+  padding: $space-2 $space-6;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  color: #ffffff;
+  background-color: var(--success-color);
+  border: 1px solid transparent;
+  border-radius: $radius-base;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover:not(:disabled) {
+    background-color: $color-success-hover;
+    transform: translateY(-1px);
+    box-shadow: $shadow-sm;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+// --- Submission message ---
+.submission-message {
+  margin-top: $space-4;
+  padding: $space-3 $space-4;
+  border-radius: $radius-base;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  background-color: rgba($color-success, 0.1);
+  color: $color-success;
+
+  &.error {
+    background-color: rgba($color-danger, 0.1);
+    color: $color-danger;
+  }
+}
+
+// --- Recent tips card ---
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: $space-4;
+  padding-bottom: $space-4;
+  border-bottom: 1px solid var(--border-color);
+
+  h2 {
+    margin-bottom: 0;
+  }
+
+  span {
+    font-size: $font-size-sm;
+    color: var(--text-light);
   }
 }
 
 .recent-tips-list {
   list-style: none;
-  padding: 0;
-  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
 
-  li {
-    display: flex;
-    align-items: center;
-    padding: 1rem 0;
+.recent-tips-list li {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  padding: $space-3 0;
+  border-bottom: 1px solid var(--border-color);
 
-    &:not(:last-child) {
-      border-bottom: 1px solid var(--input-border);
-    }
+  &:last-child {
+    border-bottom: none;
   }
 }
 
@@ -107,38 +327,53 @@ input, textarea {
   flex-shrink: 0;
   width: 40px;
   height: 40px;
-  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #eef2ff;
-  color: var(--primary-color);
-  margin-right: 1rem;
-}
-
-.tip-info {
-  flex-grow: 1;
-
-  .tip-date {
-    display: block;
-    font-weight: 500;
-    color: var(--text-color);
-  }
-  .tip-notes {
-    display: block;
-    font-size: 0.9rem;
-    color: #6b7280; // text-light
-  }
-}
-
-.tip-amount {
-  font-weight: 600;
-  font-size: 1.1rem;
+  background-color: rgba($color-success, 0.1);
+  border-radius: $radius-full;
   color: var(--success-color);
 }
 
-@media (max-width: 960px) {
-  .tip-entry-container {
-    grid-template-columns: 1fr;
-  }
+.tip-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tip-date {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: var(--text-color);
+}
+
+.tip-notes {
+  font-size: $font-size-xs;
+  color: var(--text-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// Cash/credit breakdown in recent tips list (P1-012)
+.tip-breakdown {
+  font-size: $font-size-xs;
+  color: var(--text-light);
+  margin-top: 1px;
+}
+
+.tip-amount {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semi;
+  color: var(--success-color);
+  white-space: nowrap;
+}
+
+.placeholder-text {
+  text-align: center;
+  padding: $space-10 $space-4;
+  color: var(--text-light);
+  font-size: $font-size-sm;
 }
