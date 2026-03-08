@@ -78,8 +78,9 @@ public class TipEntryController {
     @GetMapping("/earnings/daily")
     public ResponseEntity<List<DailyEarningsDTO>> getDailyEarnings(
             @RequestParam(defaultValue = "30") int days,
+            @RequestParam(defaultValue = "day") String groupBy,
             Principal principal) {
-        return ResponseEntity.ok(service.getDailyEarnings(principal.getName(), days));
+        return ResponseEntity.ok(service.getDailyEarnings(principal.getName(), days, groupBy));
     }
 
     /**

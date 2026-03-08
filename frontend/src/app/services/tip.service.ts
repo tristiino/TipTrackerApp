@@ -49,8 +49,8 @@ export class TipService {
    * Fetches daily aggregated tip earnings for the last N days.
    * @param days Number of days to look back (default 30).
    */
-  getDailyEarnings(days: number = 30): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/earnings/daily?days=${days}`);
+  getDailyEarnings(days: number = 30, groupBy: string = 'day'): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/earnings/daily?days=${days}&groupBy=${groupBy}`);
   }
 
   /**

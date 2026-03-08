@@ -12,8 +12,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -160,35 +162,80 @@ public class TipEntryService {
     }
 
     /**
-     * Returns daily aggregated tip earnings for the last N days for a given user.
-     * Days with no tips are included as zero-value entries so the chart is continuous.
+     * Returns aggregated tip earnings for the last N days, grouped by day/week/month.
+     * Uses a DB-level aggregate query for performance with large datasets.
      * @param userEmail The email of the authenticated user.
      * @param days      The number of days to look back (e.g. 30).
-     * @return A list of DailyEarningsDTO sorted ascending by date.
+     * @param groupBy   Aggregation period: "day", "week", or "month".
+     * @return A list of DailyEarningsDTO sorted ascending by period start date.
      */
-    public List<DailyEarningsDTO> getDailyEarnings(String userEmail, int days) {
+    public List<DailyEarningsDTO> getDailyEarnings(String userEmail, int days, String groupBy) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + userEmail));
 
-        LocalDate end = LocalDate.now();
+        LocalDate end   = LocalDate.now();
         LocalDate start = end.minusDays(days - 1);
 
-        List<TipEntry> tips = tipEntryRepository.findByUserIdAndDateBetween(user.getId(), start, end);
+        // Fetch per-day aggregates from DB (no full entity load)
+        List<Object[]> rows = tipEntryRepository.findDailyAggregates(user.getId(), start, end);
 
-        // Group tips by date and aggregate amounts
-        Map<LocalDate, List<TipEntry>> byDate = tips.stream()
-                .collect(Collectors.groupingBy(TipEntry::getDate));
+        // Build date → DTO map from aggregate rows
+        Map<LocalDate, DailyEarningsDTO> dailyMap = new LinkedHashMap<>();
+        for (Object[] row : rows) {
+            LocalDate date  = (LocalDate) row[0];
+            double total    = row[1] != null ? ((Number) row[1]).doubleValue() : 0.0;
+            double cash     = row[2] != null ? ((Number) row[2]).doubleValue() : 0.0;
+            double credit   = row[3] != null ? ((Number) row[3]).doubleValue() : 0.0;
+            double net      = computeNet(total);
+            dailyMap.put(date, new DailyEarningsDTO(date, total, cash, credit, net));
+        }
 
+        if ("week".equals(groupBy)) {
+            return aggregateByWeek(start, end, dailyMap);
+        } else if ("month".equals(groupBy)) {
+            return aggregateByMonth(start, end, dailyMap);
+        } else {
+            // Daily: fill every day (zeros for days with no tips)
+            List<DailyEarningsDTO> result = new ArrayList<>();
+            for (LocalDate d = start; !d.isAfter(end); d = d.plusDays(1)) {
+                result.add(dailyMap.getOrDefault(d, new DailyEarningsDTO(d, 0, 0, 0, 0)));
+            }
+            return result;
+        }
+    }
+
+    private double computeNet(double total) {
+        double gross = total - (total * TIP_SHARE_RATE);
+        return gross - (gross * TAX_RATE);
+    }
+
+    private List<DailyEarningsDTO> aggregateByWeek(LocalDate start, LocalDate end,
+                                                    Map<LocalDate, DailyEarningsDTO> dailyMap) {
+        LocalDate weekStart = start.with(DayOfWeek.MONDAY);
         List<DailyEarningsDTO> result = new ArrayList<>();
-        for (LocalDate day = start; !day.isAfter(end); day = day.plusDays(1)) {
-            List<TipEntry> dayTips = byDate.getOrDefault(day, List.of());
-            double total   = dayTips.stream().mapToDouble(TipEntry::getAmount).sum();
-            double cash    = dayTips.stream().mapToDouble(t -> t.getCashTips()   != null ? t.getCashTips()   : 0.0).sum();
-            double credit  = dayTips.stream().mapToDouble(t -> t.getCreditTips() != null ? t.getCreditTips() : 0.0).sum();
-            double tipShare = total * TIP_SHARE_RATE;
-            double gross    = total - tipShare;
-            double net      = gross - (gross * TAX_RATE);
-            result.add(new DailyEarningsDTO(day, total, cash, credit, net));
+        for (LocalDate ws = weekStart; !ws.isAfter(end); ws = ws.plusWeeks(1)) {
+            double total = 0, cash = 0, credit = 0;
+            for (LocalDate d = ws; !d.isAfter(ws.plusDays(6)) && !d.isAfter(end); d = d.plusDays(1)) {
+                DailyEarningsDTO day = dailyMap.get(d);
+                if (day != null) { total += day.getTotalTips(); cash += day.getCashTips(); credit += day.getCreditTips(); }
+            }
+            result.add(new DailyEarningsDTO(ws, total, cash, credit, computeNet(total)));
+        }
+        return result;
+    }
+
+    private List<DailyEarningsDTO> aggregateByMonth(LocalDate start, LocalDate end,
+                                                     Map<LocalDate, DailyEarningsDTO> dailyMap) {
+        LocalDate monthStart = start.withDayOfMonth(1);
+        List<DailyEarningsDTO> result = new ArrayList<>();
+        for (LocalDate ms = monthStart; !ms.isAfter(end); ms = ms.plusMonths(1)) {
+            LocalDate me = ms.plusMonths(1).minusDays(1);
+            double total = 0, cash = 0, credit = 0;
+            for (LocalDate d = ms; !d.isAfter(me) && !d.isAfter(end); d = d.plusDays(1)) {
+                DailyEarningsDTO day = dailyMap.get(d);
+                if (day != null) { total += day.getTotalTips(); cash += day.getCashTips(); credit += day.getCreditTips(); }
+            }
+            result.add(new DailyEarningsDTO(ms, total, cash, credit, computeNet(total)));
         }
         return result;
     }

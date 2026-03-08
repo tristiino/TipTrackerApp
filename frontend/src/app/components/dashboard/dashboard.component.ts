@@ -18,6 +18,8 @@ interface TimeRange {
   days: number;
 }
 
+type GroupBy = 'day' | 'week' | 'month';
+
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
@@ -30,26 +32,36 @@ export class DashboardComponent implements OnInit {
   chartType: ChartType = 'line';
   activeMetric = 'total';
   selectedDays = 30;
+  groupBy: GroupBy = 'day';
   isLoading = true;
 
-  // Chart stats (from daily earnings data)
   periodTotal = 0;
   activeDays  = 0;
-
-  // Breakdown totals for doughnut chart
   totalCash   = 0;
   totalCredit = 0;
-
-  // Summary cards (from /summary endpoint)
   summary: any = null;
 
   private rawData: any[] = [];
 
-  timeRanges: TimeRange[] = [
-    { label: '7 Days',  days: 7  },
-    { label: '2 Weeks', days: 14 },
-    { label: '30 Days', days: 30 },
+  groupByOptions: { key: GroupBy; label: string }[] = [
+    { key: 'day',   label: 'Daily'   },
+    { key: 'week',  label: 'Weekly'  },
+    { key: 'month', label: 'Monthly' },
   ];
+
+  private timeRangeMap: Record<GroupBy, TimeRange[]> = {
+    day:   [{ label: '7 Days',  days: 7   }, { label: '2 Weeks', days: 14  }, { label: '30 Days', days: 30  }],
+    week:  [{ label: '4 Weeks', days: 28  }, { label: '8 Weeks', days: 56  }, { label: '12 Weeks', days: 84 }],
+    month: [{ label: '3 Mo',    days: 90  }, { label: '6 Mo',    days: 180 }, { label: '12 Mo',   days: 365 }],
+  };
+
+  get timeRanges(): TimeRange[] {
+    return this.timeRangeMap[this.groupBy];
+  }
+
+  get periodLabel(): string {
+    return this.timeRanges.find(r => r.days === this.selectedDays)?.label ?? '';
+  }
 
   metrics: Metric[] = [
     { key: 'total',  label: 'Total Tips',   datasetIndex: 0, color: '#0d6efd', bgColor: 'rgba(13, 110, 253, 0.12)',  dataKey: 'totalTips'   },
@@ -65,65 +77,10 @@ export class DashboardComponent implements OnInit {
   chartData: ChartData<'line'> = {
     labels: [],
     datasets: [
-      {
-        label: 'Total Tips',
-        data: [],
-        borderColor: '#0d6efd',
-        backgroundColor: 'rgba(13, 110, 253, 0.12)',
-        fill: true,
-        tension: 0.4,
-        borderWidth: 2.5,
-        pointRadius: 0,
-        pointHoverRadius: 5,
-        pointHoverBackgroundColor: '#0d6efd',
-        pointHoverBorderColor: '#fff',
-        pointHoverBorderWidth: 2,
-      },
-      {
-        label: 'Cash',
-        data: [],
-        borderColor: '#198754',
-        backgroundColor: 'rgba(25, 135, 84, 0.12)',
-        fill: true,
-        tension: 0.4,
-        borderWidth: 2.5,
-        pointRadius: 0,
-        pointHoverRadius: 5,
-        pointHoverBackgroundColor: '#198754',
-        pointHoverBorderColor: '#fff',
-        pointHoverBorderWidth: 2,
-        hidden: true,
-      },
-      {
-        label: 'Credit',
-        data: [],
-        borderColor: '#ffc107',
-        backgroundColor: 'rgba(255, 193, 7, 0.12)',
-        fill: true,
-        tension: 0.4,
-        borderWidth: 2.5,
-        pointRadius: 0,
-        pointHoverRadius: 5,
-        pointHoverBackgroundColor: '#ffc107',
-        pointHoverBorderColor: '#fff',
-        pointHoverBorderWidth: 2,
-        hidden: true,
-      },
-      {
-        label: 'Net Earnings',
-        data: [],
-        borderColor: '#6f42c1',
-        backgroundColor: 'rgba(111, 66, 193, 0.12)',
-        fill: true,
-        tension: 0.4,
-        borderWidth: 2.5,
-        pointRadius: 0,
-        pointHoverRadius: 5,
-        pointHoverBackgroundColor: '#6f42c1',
-        pointHoverBorderColor: '#fff',
-        pointHoverBorderWidth: 2,
-        hidden: true,
-      },
+      { label: 'Total Tips',   data: [], borderColor: '#0d6efd', backgroundColor: 'rgba(13, 110, 253, 0.12)',  fill: true, tension: 0.4, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: '#0d6efd', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2 },
+      { label: 'Cash',         data: [], borderColor: '#198754', backgroundColor: 'rgba(25, 135, 84, 0.12)',   fill: true, tension: 0.4, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: '#198754', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2, hidden: true },
+      { label: 'Credit',       data: [], borderColor: '#ffc107', backgroundColor: 'rgba(255, 193, 7, 0.12)',   fill: true, tension: 0.4, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: '#ffc107', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2, hidden: true },
+      { label: 'Net Earnings', data: [], borderColor: '#6f42c1', backgroundColor: 'rgba(111, 66, 193, 0.12)', fill: true, tension: 0.4, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: '#6f42c1', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2, hidden: true },
     ],
   };
 
@@ -201,12 +158,17 @@ export class DashboardComponent implements OnInit {
     this.loadData(this.selectedDays);
   }
 
+  setGroupBy(key: GroupBy): void {
+    this.groupBy = key;
+    this.loadData(this.timeRangeMap[key][0].days);
+  }
+
   loadData(days: number): void {
     this.selectedDays = days;
     this.isLoading = true;
 
     forkJoin({
-      earnings: this.tipService.getDailyEarnings(days),
+      earnings: this.tipService.getDailyEarnings(days, this.groupBy),
       summary:  this.tipService.getDashboardSummary(days),
     }).subscribe({
       next: ({ earnings, summary }) => {
@@ -271,6 +233,9 @@ export class DashboardComponent implements OnInit {
 
   private formatDate(dateStr: string): string {
     const d = new Date(dateStr + 'T00:00:00');
+    if (this.groupBy === 'month') {
+      return d.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+    }
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
 }

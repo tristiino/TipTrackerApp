@@ -211,6 +211,38 @@
   }
 }
 
+// --- Group-by toggle (Daily / Weekly / Monthly) ---
+.groupby-tabs {
+  display: flex;
+  gap: $space-1;
+  margin-bottom: $space-4;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: $space-3;
+
+  button {
+    padding: $space-1 $space-4;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: #64748b;
+    background: transparent;
+    border: none;
+    border-radius: $radius-sm;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover {
+      color: #94a3b8;
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+
+    &.active {
+      color: #f1f5f9;
+      background-color: rgba(255, 255, 255, 0.1);
+      font-weight: $font-weight-semi;
+    }
+  }
+}
+
 // --- Time range tabs (below stats, above chart) ---
 .time-range-tabs {
   display: flex;
