@@ -1,5 +1,5 @@
 <nav class="navbar">
-  <a class="navbar-brand" routerLink="/">
+  <a class="navbar-brand" [routerLink]="(isLoggedIn$ | async) ? '/dashboard' : '/'">
     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-2-9h4v2h-4v-2zm-2 4h8v2h-8v-2zm2-8h4v2h-4V7z" fill="currentColor"/>
     </svg>
@@ -16,13 +16,13 @@
     <li>
       <a routerLink="/tip-entry-form" routerLinkActive="active">
         <svg width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M11 17h2v-4h4v-2h-4V7h-2v4H7v2h4v4zm-6 4q-.825 0-1.413-.588T3 19V5q0-.825.588-1.413T5 3h14q.825 0 1.413.588T21 5v14q0 .825-.588 1.413T19 21H5z"/></svg>
-        <span>Tip Entry</span>
+        <span>Log Tips</span>
       </a>
     </li>
     <li>
       <a routerLink="/reports" routerLinkActive="active">
         <svg width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M16 6h-2V4h2v2zm-4 4h-2V4h2v6zm-4 3H6V4h2v9zM4 19h16v2H4v-2z"/></svg>
-        <span>Reports</span>
+        <span>History</span>
       </a>
     </li>
     <li>
@@ -46,3 +46,7 @@
   <div *ngIf="!(isLoggedIn$ | async)">
   </div>
 </nav>
+
+<button class="fab" *ngIf="isLoggedIn$ | async" (click)="quickAdd.open()" aria-label="Quick add tip">
+  <svg width="24" height="24" viewBox="0 0 24 24"><path fill="currentColor" d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+</button>

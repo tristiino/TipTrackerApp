@@ -57,6 +57,7 @@ body {
   background-color: var(--background-color);
   color: var(--text-color);
   padding-bottom: $space-20;
+  overflow-x: hidden;
 }
 
 // --- Container ---

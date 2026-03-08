@@ -29,7 +29,8 @@
     font-weight: 500;
   }
   input {
-    padding: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    min-height: 44px;
     border-radius: 6px;
     border: 1px solid var(--border-color);
   }
@@ -38,6 +39,7 @@
     color: #fff;
     align-self: flex-end;
     padding: 0.6rem 1.2rem;
+    min-height: 44px;
     border: none;
     border-radius: 8px;
     font-size: 0.9rem;
@@ -120,6 +122,8 @@
     border: none;
     cursor: pointer;
     color: var(--text-light);
+    min-width: 44px;
+    min-height: 44px;
     &:hover {
       color: var(--primary-color);
     }
@@ -149,6 +153,7 @@
     background-color: var(--primary-color);
     color: #fff;
     padding: 0.6rem 1.2rem;
+    min-height: 44px;
     border: none;
     border-radius: 8px;
     font-size: 0.9rem;
