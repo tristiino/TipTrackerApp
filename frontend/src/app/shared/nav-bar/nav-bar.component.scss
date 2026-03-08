@@ -101,6 +101,36 @@
   }
 }
 
+/* --- FAB (Quick Add) --- */
+.fab {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.45);
+  z-index: 900;
+  transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    background-color: var(--primary-hover);
+    transform: scale(1.07);
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.55);
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
 /* --- Responsive Styles --- */
 @media (max-width: 768px) {
   .navbar-links li a span, .navbar-user .user-info {
@@ -110,5 +140,12 @@
 
   .navbar-links {
     gap: 0.25rem;
+
+    li a {
+      min-width: 44px;
+      min-height: 44px;
+      padding: 0.625rem;
+      justify-content: center;
+    }
   }
 }

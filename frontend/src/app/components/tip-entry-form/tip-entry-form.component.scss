@@ -64,6 +64,7 @@ h2 {
   textarea {
     width: 100%;
     padding: $space-3 $space-4;
+    min-height: 44px;
     font-family: $font-family-base;
     font-size: $font-size-base;
     color: var(--text-color);
@@ -144,6 +145,7 @@ h2 {
 
   button {
     padding: $space-2 $space-5;
+    min-height: 44px;
     font-size: $font-size-sm;
     font-weight: $font-weight-medium;
     color: var(--text-color);
@@ -231,6 +233,7 @@ h2 {
 
 .cancel-btn {
   padding: $space-2 $space-5;
+  min-height: 44px;
   font-size: $font-size-base;
   font-weight: $font-weight-medium;
   color: var(--text-light);
@@ -248,6 +251,7 @@ h2 {
 
 .submit-btn {
   padding: $space-2 $space-6;
+  min-height: 44px;
   font-size: $font-size-base;
   font-weight: $font-weight-medium;
   color: #ffffff;
