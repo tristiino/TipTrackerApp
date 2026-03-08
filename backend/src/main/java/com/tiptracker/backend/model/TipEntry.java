@@ -15,6 +15,9 @@ import java.time.LocalTime;
 @Data
 @NoArgsConstructor
 @Entity
+@Table(name = "tip_entry", indexes = {
+    @Index(name = "idx_tip_entry_user_date", columnList = "user_id, date")
+})
 public class TipEntry {
 
     /**

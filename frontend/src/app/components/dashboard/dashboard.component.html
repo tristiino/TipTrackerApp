@@ -59,8 +59,8 @@
     <!-- Header: title + metric toggles -->
     <div class="chart-header">
       <div class="chart-title-group">
-        <h2>Daily Earnings</h2>
-        <p class="chart-subtitle">Last {{ selectedDays }} days</p>
+        <h2>Earnings</h2>
+        <p class="chart-subtitle">{{ periodLabel }}</p>
       </div>
       <div class="metric-toggle">
         <button
@@ -73,6 +73,16 @@
       </div>
     </div>
 
+    <!-- Group-by toggle -->
+    <div class="groupby-tabs">
+      <button
+        *ngFor="let g of groupByOptions"
+        [class.active]="groupBy === g.key"
+        (click)="setGroupBy(g.key)">
+        {{ g.label }}
+      </button>
+    </div>
+
     <!-- Stats row -->
     <div class="stats-row" *ngIf="!isLoading">
       <div class="stat">
@@ -83,12 +93,12 @@
       </div>
       <div class="stat-divider"></div>
       <div class="stat">
-        <span class="stat-label">Days with tips</span>
+        <span class="stat-label">{{ groupBy === 'month' ? 'Months' : groupBy === 'week' ? 'Weeks' : 'Days' }} with tips</span>
         <span class="stat-value">{{ activeDays }}</span>
       </div>
       <div class="stat-divider"></div>
       <div class="stat">
-        <span class="stat-label">Avg per day</span>
+        <span class="stat-label">Avg per {{ groupBy === 'month' ? 'month' : groupBy === 'week' ? 'week' : 'day' }}</span>
         <span class="stat-value">
           ${{ (activeDays > 0 ? periodTotal / activeDays : 0) | number:'1.2-2' }}
         </span>
@@ -126,7 +136,7 @@
     <div class="chart-header">
       <div class="chart-title-group">
         <h2>Cash vs. Credit</h2>
-        <p class="chart-subtitle">Last {{ selectedDays }} days</p>
+        <p class="chart-subtitle">{{ periodLabel }}</p>
       </div>
     </div>
 
