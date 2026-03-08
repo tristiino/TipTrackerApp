@@ -3,6 +3,9 @@
 .env
 .vscode/
 
+# Personal (not committed)
+PRIVATE_NOTES.md
+
 # Backend (Java/Maven)
 backend/target/
 backend/.mvn/wrapper/maven-wrapper.properties
@@ -23,3 +26,4 @@ frontend/package-lock.json
 # IDEs
 .idea/
 *.iml
+.claude/

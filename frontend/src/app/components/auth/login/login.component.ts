@@ -63,7 +63,7 @@ export class LoginComponent implements OnInit {
         // The backend returns a token and user object on success
         if (response.token && response.user) {
           this.loginSuccess = true;
-          this.router.navigate(['/tip-entry-form']);
+          this.router.navigate(['/dashboard']);
         } else {
           // Handle an unexpected successful response that lacks a token
           this.loginSuccess = false;

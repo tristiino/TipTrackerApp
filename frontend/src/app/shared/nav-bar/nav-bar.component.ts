@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { QuickAddService } from '../../services/quick-add.service';
 
 
 @Component({
@@ -14,7 +15,11 @@ export class NavBarComponent implements OnInit {
   /** Holds the currently logged-in user's data to display their name. */
   public currentUser: any = null;
 
-  constructor(private router: Router, private authService: AuthService) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService,
+    public quickAdd: QuickAddService
+  ) {}
 
   /**
    * On component initialization, subscribe reactively to isLoggedIn$ so that

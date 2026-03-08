@@ -44,4 +44,20 @@ export class TipService {
   getRecentTips(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/recent`);
   }
+
+  /**
+   * Fetches daily aggregated tip earnings for the last N days.
+   * @param days Number of days to look back (default 30).
+   */
+  getDailyEarnings(days: number = 30, groupBy: string = 'day'): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/earnings/daily?days=${days}&groupBy=${groupBy}`);
+  }
+
+  /**
+   * Fetches aggregated summary stats for the dashboard (totals, shifts, hourly wage).
+   * @param days Number of days to look back (default 30).
+   */
+  getDashboardSummary(days: number = 30): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/summary?days=${days}`);
+  }
 }

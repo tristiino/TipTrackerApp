@@ -1,0 +1,258 @@
+@import '../../../app/styles/variables';
+
+.quick-add-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: $space-4;
+  backdrop-filter: blur(2px);
+  animation: fade-in 0.15s ease;
+}
+
+.quick-add-modal {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: $radius-xl;
+  width: 100%;
+  max-width: 440px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.3);
+  animation: slide-up 0.2s ease;
+}
+
+// --- Header ---
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $space-5 $space-6;
+  border-bottom: 1px solid var(--border-color);
+
+  h3 {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semi;
+    color: var(--text-color);
+    margin: 0;
+  }
+}
+
+.modal-close {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: $radius-full;
+  border: none;
+  background: transparent;
+  color: var(--text-light);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background $transition-fast, color $transition-fast;
+
+  &:hover {
+    background: var(--hover-color);
+    color: var(--text-color);
+  }
+}
+
+// --- Form fields ---
+form {
+  padding: $space-5 $space-6;
+  display: flex;
+  flex-direction: column;
+  gap: $space-5;
+}
+
+.modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: $space-2;
+}
+
+.field-label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: var(--text-light);
+}
+
+.optional {
+  font-weight: $font-weight-normal;
+  font-size: $font-size-xs;
+  color: var(--text-light);
+  opacity: 0.7;
+}
+
+input[type="number"],
+input[type="date"],
+input[type="time"] {
+  width: 100%;
+  padding: $space-3 $space-4;
+  background: var(--input-bg, var(--bg-color));
+  border: 1px solid var(--border-color);
+  border-radius: $radius-base;
+  color: var(--text-color);
+  font-size: $font-size-base;
+  min-height: 44px;
+  transition: border-color $transition-fast;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary-color);
+  }
+}
+
+// --- Tips inputs ---
+.tip-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-3;
+}
+
+.tip-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.tip-input-label {
+  font-size: $font-size-xs;
+  color: var(--text-light);
+  font-weight: $font-weight-medium;
+}
+
+.tip-total {
+  font-size: $font-size-sm;
+  color: var(--text-light);
+  strong { color: var(--primary-color); }
+}
+
+// --- Shift buttons ---
+.shift-buttons {
+  display: flex;
+  gap: $space-2;
+
+  button {
+    flex: 1;
+    padding: $space-2 $space-3;
+    min-height: 44px;
+    border: 1px solid var(--border-color);
+    border-radius: $radius-base;
+    background: transparent;
+    color: var(--text-light);
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover { border-color: var(--primary-color); color: var(--primary-color); }
+
+    &.active {
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+      color: #fff;
+    }
+  }
+}
+
+// --- Time inputs ---
+.time-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $space-3;
+}
+
+.time-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: $space-1;
+}
+
+.time-label {
+  font-size: $font-size-xs;
+  color: var(--text-light);
+  font-weight: $font-weight-medium;
+}
+
+.hours-badge {
+  display: inline-block;
+  padding: $space-1 $space-3;
+  background: rgba(25, 135, 84, 0.1);
+  color: #198754;
+  border-radius: $radius-full;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+}
+
+// --- Actions ---
+.modal-actions {
+  display: flex;
+  gap: $space-3;
+  padding-top: $space-2;
+
+  button {
+    flex: 1;
+    padding: $space-3 $space-4;
+    min-height: 44px;
+    border-radius: $radius-base;
+    font-size: $font-size-base;
+    font-weight: $font-weight-medium;
+    cursor: pointer;
+    transition: all $transition-fast;
+    border: none;
+  }
+}
+
+.btn-cancel {
+  background: var(--hover-color, rgba(0,0,0,0.05));
+  color: var(--text-light);
+  &:hover { background: var(--border-color); }
+}
+
+.btn-submit {
+  background: var(--primary-color);
+  color: #fff;
+  &:hover:not(:disabled) { background: var(--primary-hover, #0b5ed7); }
+  &:disabled { opacity: 0.55; cursor: not-allowed; }
+}
+
+// --- Error ---
+.modal-error {
+  font-size: $font-size-sm;
+  color: var(--danger-color, #dc3545);
+  margin: 0;
+}
+
+// --- Success ---
+.modal-success {
+  padding: $space-10 $space-6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $space-4;
+  text-align: center;
+
+  p {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-medium;
+    color: var(--text-color);
+    margin: 0;
+  }
+}
+
+// --- Animations ---
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

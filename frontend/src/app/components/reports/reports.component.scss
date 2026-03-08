@@ -29,15 +29,28 @@
     font-weight: 500;
   }
   input {
-    padding: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    min-height: 44px;
     border-radius: 6px;
     border: 1px solid var(--border-color);
   }
   .btn-primary {
     background-color: var(--primary-color);
     color: #fff;
-    align-self: flex-end; // Aligns button with bottom of inputs
+    align-self: flex-end;
     padding: 0.6rem 1.2rem;
+    min-height: 44px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out, transform 0.15s ease-in-out;
+
+    &:hover {
+      background-color: #0b5ed7;
+      transform: translateY(-1px);
+    }
   }
 }
 
@@ -109,6 +122,8 @@
     border: none;
     cursor: pointer;
     color: var(--text-light);
+    min-width: 44px;
+    min-height: 44px;
     &:hover {
       color: var(--primary-color);
     }
@@ -128,6 +143,34 @@
   padding: 3rem;
   font-style: italic;
   color: var(--text-light);
+}
+
+.export-section {
+  text-align: right;
+  margin-bottom: 2rem;
+
+  button {
+    background-color: var(--primary-color);
+    color: #fff;
+    padding: 0.6rem 1.2rem;
+    min-height: 44px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out, transform 0.15s ease-in-out;
+
+    &:hover:not(:disabled) {
+      background-color: #0b5ed7;
+      transform: translateY(-1px);
+    }
+
+    &:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+  }
 }
 
 .date-range-error {
