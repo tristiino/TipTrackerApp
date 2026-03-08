@@ -3,6 +3,8 @@ package com.tiptracker.backend.repository;
 import com.tiptracker.backend.model.TipEntry;
 import com.tiptracker.backend.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -15,17 +17,28 @@ public interface TipEntryRepository extends JpaRepository<TipEntry, Long> {
 
     /**
      * Finds all tip entries for a specific user within a given date range.
-     * @param userId The ID of the user.
-     * @param start The start date of the period.
-     * @param end The end date of the period.
-     * @return A list of TipEntry entities matching the criteria.
+     * Used for reports where full entity data is needed.
      */
     List<TipEntry> findByUserIdAndDateBetween(Long userId, LocalDate start, LocalDate end);
 
     /**
+     * Returns per-day aggregated totals without loading full entities.
+     * Each row: [date, totalTips, cashTips, creditTips, hoursWorked].
+     * Used by dashboard endpoints for performance with large datasets.
+     */
+    @Query("SELECT t.date, SUM(t.amount), " +
+           "SUM(COALESCE(t.cashTips, 0.0)), SUM(COALESCE(t.creditTips, 0.0)), " +
+           "SUM(COALESCE(t.hoursWorked, 0.0)) " +
+           "FROM TipEntry t " +
+           "WHERE t.user.id = :userId AND t.date BETWEEN :start AND :end " +
+           "GROUP BY t.date ORDER BY t.date ASC")
+    List<Object[]> findDailyAggregates(
+            @Param("userId") Long userId,
+            @Param("start") LocalDate start,
+            @Param("end") LocalDate end);
+
+    /**
      * Finds the 7 most recent tip entries for a specific user, ordered by date descending.
-     * @param user The User entity to find tips for.
-     * @return A list of the 7 most recent TipEntry entities.
      */
     List<TipEntry> findTop7ByUserOrderByDateDesc(User user);
 }

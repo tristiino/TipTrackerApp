@@ -1,80 +1,113 @@
-/* A simple reset to remove default browser styles */
+// ============================================
+// TIPTRACKER — Global Styles
+// ============================================
+// This file imports the design system and sets
+// up global base styles + theme definitions.
+// ============================================
+
+// Import design system
+@import 'app/styles/variables';
+@import 'app/styles/components';
+
+// --- CSS Reset ---
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-/* --- Light Theme (Default) --- */
+// --- Theme Definitions ---
+// These CSS custom properties power the theming.
+// Components use var(--primary-color) etc. so they
+// automatically adapt when the theme class changes.
+
 body, .light-theme {
-  --primary-color: #0d6efd;
-  --success-color: #198754;
-  --background-color: #f8f9fa;
-  --surface-color: #ffffff;
-  --text-color: #212529;
-  --text-light: #6c757d;
-  --border-color: #dee2e6;
+  --primary-color: #{$color-primary};
+  --success-color: #{$color-success};
+  --danger-color: #{$color-danger};
+  --warning-color: #{$color-warning};
+  --background-color: #{$light-bg};
+  --surface-color: #{$light-surface};
+  --text-color: #{$light-text};
+  --text-light: #{$light-text-muted};
+  --border-color: #{$light-border};
 
   background-color: var(--background-color);
   color: var(--text-color);
   transition: background-color 0.3s, color 0.3s;
 }
 
-/* --- Dark Theme --- */
 .dark-theme {
-  --primary-color: #0d6efd;
-  --success-color: #20c997; // A brighter green for dark mode
-  --background-color: #121212;
-  --surface-color: #1e1e1e;
-  --text-color: #e9ecef;
-  --text-light: #adb5bd;
-  --border-color: #343a40;
+  --primary-color: #{$color-primary};
+  --success-color: #20c997;
+  --danger-color: #{$color-danger};
+  --warning-color: #{$color-warning};
+  --background-color: #{$dark-bg};
+  --surface-color: #{$dark-surface};
+  --text-color: #{$dark-text};
+  --text-light: #{$dark-text-muted};
+  --border-color: #{$dark-border};
 }
 
-/* New Vibrant Color Palette */
-:root {
-  --primary-color: #0d6efd;      /* A strong, vibrant blue */
-  --success-color: #198754;      /* A deep, confident green */
-  --background-color: #f8f9fa;   /* A very light, clean gray */
-  --surface-color: #ffffff;      /* For cards and surfaces */
-  --text-color: #212529;         /* A dark, readable charcoal */
-  --text-light: #6c757d;        /* For secondary text */
-  --border-color: #dee2e6;
-}
-
+// --- Base Styles ---
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: $font-family-base;
+  font-size: $font-size-base;
+  line-height: $line-height-base;
   background-color: var(--background-color);
   color: var(--text-color);
-  line-height: 1.6;
-  padding-bottom: 5rem;
+  padding-bottom: $space-20;
+  overflow-x: hidden;
 }
 
+// --- Container ---
 .container {
-  max-width: 960px;
-  margin: 2rem auto; // Added more vertical margin
-  padding: 1.5rem;
-}
+  max-width: $container-md;
+  margin: $space-8 auto;
+  padding: $space-6;
 
-h1, h2, h3 {
-  margin-bottom: 1rem;
-  font-weight: 600;
-}
-
-button {
-  cursor: pointer;
-  border: 1px solid transparent;
-  padding: 0.5rem 1rem;
-  border-radius: 0.25rem;
-  font-size: 1rem;
-  font-weight: 500;
-  transition: all 0.2s ease-in-out;
-}
-
-/* --- Responsive Media Query --- */
-@media (max-width: 768px) {
-  .container {
-    margin: 1rem auto;
-    padding: 1rem;
+  @media (max-width: $bp-tablet) {
+    margin: $space-4 auto;
+    padding: $space-4;
   }
 }
+
+// --- Typography ---
+h1, h2, h3, h4, h5, h6 {
+  font-weight: $font-weight-semi;
+  line-height: $line-height-tight;
+  margin-bottom: $space-4;
+}
+
+h1 { font-size: $font-size-2xl; }
+h2 { font-size: $font-size-xl; }
+h3 { font-size: $font-size-lg; }
+
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color $transition-fast;
+
+  &:hover {
+    color: $color-primary-hover;
+  }
+}
+
+// --- Utility Classes ---
+.text-center { text-align: center; }
+.text-muted  { color: var(--text-light); }
+.text-sm     { font-size: $font-size-sm; }
+.text-xs     { font-size: $font-size-xs; }
+.text-lg     { font-size: $font-size-lg; }
+
+.mt-1 { margin-top: $space-1; }
+.mt-2 { margin-top: $space-2; }
+.mt-4 { margin-top: $space-4; }
+.mt-6 { margin-top: $space-6; }
+.mt-8 { margin-top: $space-8; }
+
+.mb-1 { margin-bottom: $space-1; }
+.mb-2 { margin-bottom: $space-2; }
+.mb-4 { margin-bottom: $space-4; }
+.mb-6 { margin-bottom: $space-6; }
+.mb-8 { margin-bottom: $space-8; }

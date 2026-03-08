@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 /**
  * Represents a single Tip Entry entity in the database,
@@ -14,6 +15,9 @@ import java.time.LocalDate;
 @Data
 @NoArgsConstructor
 @Entity
+@Table(name = "tip_entry", indexes = {
+    @Index(name = "idx_tip_entry_user_date", columnList = "user_id, date")
+})
 public class TipEntry {
 
     /**
@@ -28,6 +32,27 @@ public class TipEntry {
      */
     private double amount;
 
+    /**
+     * Cash tip amount.
+     */
+    @Column(nullable = true)
+    private Double cashTips;
+
+    /**
+     * Credit card tip amount. Null for entries created before Sprint 2.
+     */
+    @Column(nullable = true)
+    private Double creditTips;
+
+    @Column(nullable = true)
+    private LocalTime startTime;
+
+    @Column(nullable = true)
+    private LocalTime endTime;
+
+    @Column(nullable = true)
+    private Double hoursWorked;
+    
     /**
      * The date the tip was received.
      */
