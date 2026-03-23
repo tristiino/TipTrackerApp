@@ -1,11 +1,11 @@
-// Use CSS variables for a consistent theme
+// Ocean Trust brand colors
 :host {
-  --primary-color: #4f46e5; // A modern indigo
-  --primary-hover: #4338ca;
-  --text-color: #374151;
-  --text-light: #6b7280;
+  --primary-color: #2563eb;
+  --primary-hover: #1d4ed8;
+  --text-color: #1e3a5f;
+  --text-light: #64748b;
   --nav-background: #ffffff;
-  --border-color: #e5e7eb;
+  --border-color: #e2e8f0;
 }
 
 .navbar {
@@ -60,7 +60,7 @@
     }
 
     &.active {
-      background-color: #eef2ff;
+      background-color: #eff6ff; // ocean blue tint
       color: var(--primary-color);
       font-weight: 600;
     }
@@ -116,14 +116,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.45);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.45);
   z-index: 900;
   transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
 
   &:hover {
     background-color: var(--primary-hover);
     transform: scale(1.07);
-    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.55);
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.55);
   }
 
   &:active {
