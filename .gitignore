@@ -2,7 +2,8 @@
 .DS_Store
 .env
 .vscode/
-cypress
+frontend/cypress/
+frontend/cypress.config.ts
 # Personal (not committed)
 PRIVATE_NOTES.md
 
