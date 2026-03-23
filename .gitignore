@@ -2,7 +2,7 @@
 .DS_Store
 .env
 .vscode/
-
+cypress
 # Personal (not committed)
 PRIVATE_NOTES.md
 
