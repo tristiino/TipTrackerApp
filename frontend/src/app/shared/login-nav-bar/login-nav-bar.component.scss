@@ -1,9 +1,9 @@
-// Use CSS variables for a consistent theme
+// Ocean Trust brand colors
 :host {
-  --primary-color: #4f46e5;
-  --text-color: #374151;
+  --primary-color: #2563eb;
+  --text-color: #1e3a5f;
   --nav-background: #ffffff;
-  --border-color: #e5e7eb;
+  --border-color: #e2e8f0;
 }
 
 .navbar {
@@ -51,7 +51,7 @@
     }
 
     &.active {
-      background-color: #eef2ff;
+      background-color: #eff6ff;
       color: var(--primary-color);
       font-weight: 600;
     }
