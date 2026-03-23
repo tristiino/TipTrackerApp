@@ -1,9 +1,15 @@
 <nav class="navbar">
   <a class="navbar-brand" [routerLink]="(isLoggedIn$ | async) ? '/dashboard' : '/'">
-    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-2-9h4v2h-4v-2zm-2 4h8v2h-8v-2zm2-8h4v2h-4V7z" fill="currentColor"/>
+    <!-- Ocean Trust logo mark: bar chart + coral trend line -->
+    <svg width="32" height="32" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="64" height="64" rx="14" fill="#1e3a5f"/>
+      <rect x="8" y="36" width="13" height="20" rx="2.5" fill="#93c5fd"/>
+      <rect x="26" y="24" width="13" height="32" rx="2.5" fill="#60a5fa"/>
+      <rect x="44" y="10" width="13" height="46" rx="2.5" fill="#2563eb"/>
+      <path d="M14.5 38 Q32.5 20 50.5 14" stroke="#f97316" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <circle cx="50.5" cy="14" r="4.5" fill="#f97316"/>
     </svg>
-    <span>Tip Tracker</span>
+    <span>tiptrackerapp</span>
   </a>
 
   <ul class="navbar-links" *ngIf="isLoggedIn$ | async">
