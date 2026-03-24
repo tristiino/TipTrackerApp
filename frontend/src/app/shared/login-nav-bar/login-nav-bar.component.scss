@@ -2,8 +2,15 @@
 :host {
   --primary-color: #2563eb;
   --text-color: #1e3a5f;
-  --nav-background: #ffffff;
-  --border-color: #e2e8f0;
+  --nav-background: #d4e0ed;
+  --border-color: #bfcfdf;
+}
+
+:host-context(.dark-theme) {
+  --primary-color: #60a5fa;
+  --text-color: #e2e8f0;
+  --nav-background: #1a2332;
+  --border-color: #2d3d52;
 }
 
 .navbar {
@@ -25,10 +32,20 @@
   svg {
     font-size: 2rem;
   }
-  span {
+  .brand-name {
     font-size: 1.25rem;
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: -0.3px;
   }
+  .brand-tip     { color: #1e3a5f; }
+  .brand-tracker { color: #2563eb; }
+  .brand-app     { color: #f97316; }
+}
+
+:host-context(.dark-theme) .navbar-brand {
+  .brand-tip     { color: #93c5fd; }
+  .brand-tracker { color: #60a5fa; }
+  .brand-app     { color: #fb923c; }
 }
 
 .nav-links {
@@ -47,7 +64,7 @@
     transition: all 0.2s ease-in-out;
 
     &:hover {
-      background-color: #f3f4f6;
+      background-color: #c4d6e2;
     }
 
     &.active {
@@ -60,7 +77,7 @@
 
 /* --- Responsive Styles for Mobile --- */
 @media (max-width: 768px) {
-  .navbar-brand span {
+  .navbar-brand .brand-name {
     display: none; // Hides the brand text on small screens, leaving the logo
   }
 }
