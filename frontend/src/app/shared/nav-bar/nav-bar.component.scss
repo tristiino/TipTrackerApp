@@ -4,8 +4,17 @@
   --primary-hover: #1d4ed8;
   --text-color: #1e3a5f;
   --text-light: #64748b;
-  --nav-background: #ffffff;
-  --border-color: #e2e8f0;
+  --nav-background: #d4e0ed;
+  --border-color: #bfcfdf;
+}
+
+:host-context(.dark-theme) {
+  --primary-color: #60a5fa;
+  --primary-hover: #93c5fd;
+  --text-color: #e2e8f0;
+  --text-light: #94a3b8;
+  --nav-background: #1a2332;
+  --border-color: #2d3d52;
 }
 
 .navbar {
@@ -27,10 +36,20 @@
   svg {
     font-size: 2rem;
   }
-  span {
+  .brand-name {
     font-size: 1.25rem;
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: -0.3px;
   }
+  .brand-tip     { color: #1e3a5f; }
+  .brand-tracker { color: #2563eb; }
+  .brand-app     { color: #f97316; }
+}
+
+:host-context(.dark-theme) .navbar-brand {
+  .brand-tip     { color: #93c5fd; }
+  .brand-tracker { color: #60a5fa; }
+  .brand-app     { color: #fb923c; }
 }
 
 .navbar-links {
@@ -55,7 +74,7 @@
     transition: all 0.2s ease-in-out;
 
     &:hover {
-      background-color: #f3f4f6;
+      background-color: #c4d6e2;
       color: var(--text-color);
     }
 
@@ -131,8 +150,19 @@
   }
 }
 
+/* --- Dark Mode Overrides --- */
+:host-context(.dark-theme) .navbar-links li a {
+  &:hover {
+    background-color: #243447;
+  }
+  &.active {
+    background-color: #1e3a5f;
+  }
+}
+
 /* --- Responsive Styles --- */
 @media (max-width: 768px) {
+  .navbar-brand .brand-name,
   .navbar-links li a span, .navbar-user .user-info {
     // On small screens, hide the text to create an icon-only bar
     display: none;
