@@ -35,8 +35,9 @@ public class User implements UserDetails {
     private Long id;
 
     /**
-     * The user's chosen username.
+     * The user's chosen username. Must be unique.
      */
+    @Column(unique = true)
     private String username;
 
     /**

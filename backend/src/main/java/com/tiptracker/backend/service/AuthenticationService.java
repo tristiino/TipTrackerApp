@@ -36,18 +36,21 @@ public class AuthenticationService {
      * @return AuthenticationResponse containing the JWT and user data.
      */
     public AuthenticationResponse authenticate(LoginRequest loginRequest) {
-        log.info("Authenticating user: {}", loginRequest.getEmail());
+        String identifier = loginRequest.getUsernameOrEmail();
+        log.info("Authenticating user: {}", identifier);
 
-        // Spring Security handles the password check
+        // Resolve the identifier to a user — try email first, then username
+        User user = userRepository.findByEmail(identifier)
+                .or(() -> userRepository.findByUsername(identifier))
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + identifier));
+
+        // Spring Security handles the password check using the user's actual email
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginRequest.getEmail(),
+                        user.getEmail(),
                         loginRequest.getPassword()
                 )
         );
-
-        User user = userRepository.findByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found after authentication"));
 
         String jwt = jwtUtil.generateToken(user);
         UserDto userDto = new UserDto(user.getId(), user.getEmail(), user.getUsername());
@@ -64,6 +67,9 @@ public class AuthenticationService {
     public AuthenticationResponse register(RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw new IllegalStateException("Email already in use");
+        }
+        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+            throw new IllegalStateException("Username already in use");
         }
 
         User user = new User();

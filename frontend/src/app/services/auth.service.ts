@@ -21,7 +21,7 @@ export class AuthService {
    * token and user data upon successful authentication.
    * @param credentials The user's email and password.
    */
-  login(credentials: { email: string; password: string }): Observable<any> {
+  login(credentials: { usernameOrEmail: string; password: string }): Observable<any> {
     return this.http.post(`${this.apiUrl}/login`, credentials).pipe(
       map((response: any) => {
         if (response.token && response.user) {
