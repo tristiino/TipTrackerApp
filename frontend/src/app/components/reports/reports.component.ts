@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ReportService } from 'src/app/services/report.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { TipService } from 'src/app/services/tip.service';
@@ -17,11 +18,26 @@ export class ReportsComponent implements OnInit {
   isLoading = false;
   dateRangeError: string = '';
 
+  showEditModal = false;
+  editingTip: any = null;
+  editForm: FormGroup;
+
   constructor(
     private reportService: ReportService,
     private authService: AuthService,
-    private tipService: TipService
+    private tipService: TipService,
+    private fb: FormBuilder
   ) {
+    this.editForm = this.fb.group({
+      cashTips:     ['', [Validators.required, Validators.min(0)]],
+      creditTips:   ['', [Validators.required, Validators.min(0)]],
+      date:         ['', [Validators.required]],
+      shiftType:    ['', [Validators.required]],
+      notes:        [''],
+      peopleInPool: ['', [Validators.required, Validators.min(1)]],
+      startTime:    [''],
+      endTime:      [''],
+    });
     // Set a default date range for the last 14 days.
     const today = new Date();
     const lastWeek = new Date();
@@ -68,19 +84,62 @@ export class ReportsComponent implements OnInit {
     });
   }
 
+  get editTotalTips(): number {
+    const cash   = parseFloat(this.editForm.get('cashTips')?.value)   || 0;
+    const credit = parseFloat(this.editForm.get('creditTips')?.value) || 0;
+    return cash + credit;
+  }
+
+  get editHoursWorked(): number | null {
+    const start = this.editForm.get('startTime')?.value;
+    const end   = this.editForm.get('endTime')?.value;
+    if (!start || !end) return null;
+    const [sh, sm] = start.split(':').map(Number);
+    const [eh, em] = end.split(':').map(Number);
+    const minutes = (eh * 60 + em) - (sh * 60 + sm);
+    if (minutes <= 0) return null;
+    return Math.round((minutes / 60) * 100) / 100;
+  }
+
   /**
-   * Allows the user to edit the amount of a tip entry.
-   * @param tip The tip entry object to be edited.
+   * Opens the edit modal pre-populated with the selected tip entry.
    */
   editTip(tip: any): void {
-    const newAmount = prompt('Enter new tip amount:', tip.amount);
-    if (newAmount) {
-      const updatedTip = { ...tip, amount: parseFloat(newAmount) };
-      this.tipService.updateTip(tip.id, updatedTip).subscribe({
-        next: () => this.loadReport(),
-        error: (err) => console.error('Failed to update tip:', err)
-      });
-    }
+    this.editingTip = tip;
+    this.editForm.setValue({
+      cashTips:     tip.cashTips     ?? tip.amount ?? 0,
+      creditTips:   tip.creditTips   ?? 0,
+      date:         tip.date,
+      shiftType:    tip.shiftType    ?? '',
+      notes:        tip.notes        ?? '',
+      peopleInPool: tip.peopleInPool ?? 1,
+      startTime:    tip.startTime    ?? '',
+      endTime:      tip.endTime      ?? '',
+    });
+    this.showEditModal = true;
+  }
+
+  selectEditShift(shift: string): void {
+    this.editForm.get('shiftType')?.setValue(shift);
+  }
+
+  closeEditModal(): void {
+    this.showEditModal = false;
+    this.editingTip = null;
+  }
+
+  saveEdit(): void {
+    if (this.editForm.invalid || !this.editingTip) return;
+    const cash   = parseFloat(this.editForm.value.cashTips)   || 0;
+    const credit = parseFloat(this.editForm.value.creditTips) || 0;
+    const updated = { ...this.editingTip, ...this.editForm.value, amount: cash + credit };
+    this.tipService.updateTip(this.editingTip.id, updated).subscribe({
+      next: () => {
+        this.closeEditModal();
+        this.loadReport();
+      },
+      error: (err) => console.error('Failed to update tip:', err)
+    });
   }
 
   /**

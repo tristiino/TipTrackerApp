@@ -78,7 +78,6 @@ public class TipEntryService {
         TipEntry existingTip = tipEntryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Tip entry not found with id: " + id));
 
-        existingTip.setAmount(tipDetails.getAmount());
         existingTip.setDate(tipDetails.getDate());
         existingTip.setShiftType(tipDetails.getShiftType());
         existingTip.setNotes(tipDetails.getNotes());
@@ -87,6 +86,15 @@ public class TipEntryService {
         existingTip.setStartTime(tipDetails.getStartTime());
         existingTip.setEndTime(tipDetails.getEndTime());
         existingTip.setHoursWorked(tipDetails.getHoursWorked());
+
+        // Recalculate amount from cashTips + creditTips when provided
+        if (tipDetails.getCashTips() != null || tipDetails.getCreditTips() != null) {
+            double cash   = tipDetails.getCashTips()   != null ? tipDetails.getCashTips()   : 0;
+            double credit = tipDetails.getCreditTips() != null ? tipDetails.getCreditTips() : 0;
+            existingTip.setAmount(cash + credit);
+        } else {
+            existingTip.setAmount(tipDetails.getAmount());
+        }
 
 
         return tipEntryRepository.save(existingTip);

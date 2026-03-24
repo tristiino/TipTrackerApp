@@ -123,7 +123,7 @@
 /* --- FAB (Quick Add) --- */
 .fab {
   position: fixed;
-  bottom: 1.5rem;
+  bottom: 3.75rem; // Sits just above the fixed footer (~50px tall)
   right: 1.5rem;
   width: 56px;
   height: 56px;
