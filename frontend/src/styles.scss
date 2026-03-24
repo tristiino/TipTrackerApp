@@ -16,6 +16,15 @@
   padding: 0;
 }
 
+// --- Safari input fix ---
+// Safari (desktop + iOS) applies native chrome to date/time inputs,
+// inflating their size. Strip it so our custom styles take full control.
+input[type="date"],
+input[type="time"] {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 // --- Theme Definitions ---
 // These CSS custom properties power the theming.
 // Components use var(--primary-color) etc. so they
