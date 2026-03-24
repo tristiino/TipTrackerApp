@@ -5,7 +5,9 @@ import com.tiptracker.backend.dto.RegisterRequest;
 import com.tiptracker.backend.payload.AuthenticationResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 import com.tiptracker.backend.service.AuthenticationService;
 
@@ -29,10 +31,15 @@ public class AuthController {
      */
     @PostMapping("/login")
     public ResponseEntity<AuthenticationResponse> login(@RequestBody LoginRequest loginRequest) {
-        log.info("Attempting login for user: {}", loginRequest.getEmail());
-        AuthenticationResponse authResponse = authenticationService.authenticate(loginRequest);
-        log.info("Login successful for user: {}", loginRequest.getEmail());
-        return ResponseEntity.ok(authResponse);
+        log.info("Attempting login for user: {}", loginRequest.getUsernameOrEmail());
+        try {
+            AuthenticationResponse authResponse = authenticationService.authenticate(loginRequest);
+            log.info("Login successful for user: {}", loginRequest.getUsernameOrEmail());
+            return ResponseEntity.ok(authResponse);
+        } catch (AuthenticationException | IllegalArgumentException e) {
+            log.warn("Login failed for user: {} - {}", loginRequest.getUsernameOrEmail(), e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
     }
 
     /**
