@@ -25,7 +25,7 @@ export class LoginComponent implements OnInit {
     private route: ActivatedRoute
   ) {
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
+      usernameOrEmail: ['', Validators.required],
       password: ['', Validators.required]
     });
   }
@@ -57,8 +57,8 @@ export class LoginComponent implements OnInit {
       return;
     }
 
-    const { email, password } = this.loginForm.value;
-    this.authService.login({ email, password }).subscribe({
+    const { usernameOrEmail, password } = this.loginForm.value;
+    this.authService.login({ usernameOrEmail, password }).subscribe({
       next: (response) => {
         // The backend returns a token and user object on success
         if (response.token && response.user) {
