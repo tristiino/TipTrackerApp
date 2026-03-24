@@ -34,6 +34,8 @@
     padding: 0.5rem 0.75rem;
     border-radius: 6px;
     border: 1px solid var(--border-color);
+    background-color: var(--surface-color);
+    color: var(--text-color);
     width: 200px; // Give the inputs a fixed width
   }
 }
@@ -51,16 +53,34 @@
     padding: 0.6rem 1.2rem;
   }
   .btn-secondary {
-    background-color: #e9ecef;
-    border-color: #e9ecef;
+    background-color: var(--border-color);
+    border-color: var(--border-color);
     color: var(--text-color);
     &:hover {
-      background-color: #dee2e6;
+      background-color: var(--text-light);
+      color: var(--surface-color);
     }
   }
   .btn-primary {
     background-color: var(--primary-color);
     color: #fff;
+  }
+}
+
+.logout-section {
+  max-width: 600px;
+  margin-top: 1.5rem;
+
+  .btn-logout {
+    width: 100%;
+    background-color: transparent;
+    border: 1px solid var(--danger-color);
+    color: var(--danger-color);
+    font-weight: 500;
+    &:hover {
+      background-color: var(--danger-color);
+      color: #fff;
+    }
   }
 }
 

@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { AuthService } from 'src/app/services/auth.service';
 import { LanguageService } from 'src/app/services/language.service';
 import { ThemeService } from 'src/app/services/theme.service';
 
@@ -16,7 +18,9 @@ export class SettingsComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private languageService: LanguageService,
-    private themeService: ThemeService
+    private themeService: ThemeService,
+    private authService: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -63,6 +67,11 @@ export class SettingsComponent implements OnInit {
       console.log('Settings saved:', this.settingsForm.value);
       alert('Settings saved!'); // Simple user feedback
     }
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 
   onReset(): void {

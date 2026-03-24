@@ -23,6 +23,10 @@
 
 body, .light-theme {
   --primary-color: #{$color-primary};
+  --primary-hover: #{$color-primary-hover};
+  --primary-dark: #{$color-primary-dark};
+  --accent-color: #{$color-accent};
+  --accent-hover: #{$color-accent-hover};
   --success-color: #{$color-success};
   --danger-color: #{$color-danger};
   --warning-color: #{$color-warning};
@@ -38,7 +42,11 @@ body, .light-theme {
 }
 
 .dark-theme {
-  --primary-color: #{$color-primary};
+  --primary-color: #60a5fa;
+  --primary-hover: #93c5fd;
+  --primary-dark: #1e3a5f;
+  --accent-color: #{$color-accent};
+  --accent-hover: #{$color-accent-hover};
   --success-color: #20c997;
   --danger-color: #{$color-danger};
   --warning-color: #{$color-warning};
