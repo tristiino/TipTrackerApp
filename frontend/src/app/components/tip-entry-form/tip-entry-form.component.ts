@@ -12,6 +12,7 @@ export class TipEntryFormComponent implements OnInit {
   submissionMessage: string | null = null;
   isError: boolean = false;
   recentTips: any[] = [];
+  submitted = false;
 
   constructor(
     private fb: FormBuilder,
@@ -79,27 +80,35 @@ export class TipEntryFormComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.tipForm.valid) {
-      this.tipService.addTip(this.tipForm.value).subscribe({
-        next: (res: any) => {
-          this.isError = false;
-          this.submissionMessage = 'Tip submitted successfully!';
-          const shift = this.tipForm.get('shiftType')?.value;
-          const start = this.tipForm.get('startTime')?.value;
-          if (shift && start) {
-            localStorage.setItem(`shiftStart_${shift}`, start);
-          }
-          this.tipForm.reset({ date: new Date().toISOString().split('T')[0], startTime: '', endTime: '' });
-          this.loadRecentTips();
-          setTimeout(() => this.submissionMessage = null, 3000);
-        },
-        error: (err: any) => {
-          this.isError = true;
-          this.submissionMessage = 'Submission failed. Please try again.';
-          setTimeout(() => this.submissionMessage = null, 3000);
-        }
-      });
+    this.submitted = true;
+    this.tipForm.markAllAsTouched();
+
+    if (!this.tipForm.valid) {
+      this.isError = true;
+      this.submissionMessage = 'Submission unsuccessful. Please fix the errors above.';
+      return;
     }
+
+    this.tipService.addTip(this.tipForm.value).subscribe({
+      next: () => {
+        this.isError = false;
+        this.submitted = false;
+        this.submissionMessage = 'Tip submitted successfully!';
+        const shift = this.tipForm.get('shiftType')?.value;
+        const start = this.tipForm.get('startTime')?.value;
+        if (shift && start) {
+          localStorage.setItem(`shiftStart_${shift}`, start);
+        }
+        this.tipForm.reset({ date: new Date().toISOString().split('T')[0], startTime: '', endTime: '' });
+        this.loadRecentTips();
+        setTimeout(() => this.submissionMessage = null, 3000);
+      },
+      error: () => {
+        this.isError = true;
+        this.submissionMessage = 'Submission failed. Please try again.';
+        setTimeout(() => this.submissionMessage = null, 3000);
+      }
+    });
   }
 
   onCancel(): void {

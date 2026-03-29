@@ -273,6 +273,25 @@ h2 {
   }
 }
 
+// --- Field validation errors ---
+.field-error {
+  margin-top: $space-1;
+  font-size: $font-size-xs;
+  color: $color-danger;
+}
+
+.input-error {
+  border-color: $color-danger !important;
+
+  &:focus {
+    box-shadow: 0 0 0 3px rgba($color-danger, 0.2) !important;
+  }
+}
+
+.shift-error button {
+  border-color: $color-danger;
+}
+
 // --- Submission message ---
 .submission-message {
   margin-top: $space-4;

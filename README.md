@@ -6,10 +6,10 @@ This application serves as a comprehensive example of a production-ready full-st
 
 ## 🚀 Key Features
 
-*   **Secure Authentication**: Robust user registration and login implemented with JWT (JSON Web Tokens) and Spring Security.
-*   **Shift & Tip Management**: specific tracking for dates, hours worked, and tips earned.
-*   **Data Persistence**: Reliable data storage using MySQL with Hibernate ORM.
-*   **Responsive UI**: A clean, user-friendly interface built with Angular 14.
+- **Secure Authentication**: Robust user registration and login implemented with JWT (JSON Web Tokens) and Spring Security.
+- **Shift & Tip Management**: specific tracking for dates, hours worked, and tips earned.
+- **Data Persistence**: Reliable data storage using MySQL with Hibernate ORM.
+- **Responsive UI**: A clean, user-friendly interface built with Angular 14.
 
 ---
 
@@ -18,17 +18,19 @@ This application serves as a comprehensive example of a production-ready full-st
 This project leverages industry-standard technologies to ensure performance, maintainability, and scalability.
 
 ### Backend (API Layer)
-*   **Framework**: Spring Boot 3.5.3
-*   **Language**: Java 17+
-*   **Security**: Spring Security 6 (JWT Authentication)
-*   **Database**: MySQL 8.0
-*   **Build Tool**: Maven (Wrapper included)
+
+- **Framework**: Spring Boot 3.5.3
+- **Language**: Java 17+
+- **Security**: Spring Security 6 (JWT Authentication)
+- **Database**: MySQL 8.0
+- **Build Tool**: Maven (Wrapper included)
 
 ### Frontend (Client Layer)
-*   **Framework**: Angular 14
-*   **Language**: TypeScript
-*   **Styling**: SCSS, CSS3
-*   **Platform**: Node.js
+
+- **Framework**: Angular 14
+- **Language**: TypeScript
+- **Styling**: SCSS, CSS3
+- **Platform**: Node.js
 
 ---
 
@@ -39,9 +41,10 @@ Follow these instructions to get a copy of the project up and running on your lo
 ### Prerequisites
 
 Ensure you have the following installed on your system:
-*   **Java JDK 17** or higher
-*   **Node.js** (v14 or v18 recommended) & **npm**
-*   **MySQL Server** (running locally)
+
+- **Java JDK 17** or higher
+- **Node.js** (v14 or v18 recommended) & **npm**
+- **MySQL Server** (running locally)
 
 ### 1. Database Setup
 
@@ -60,7 +63,7 @@ The application requires a MySQL database. You can set this up quickly via the c
     EXIT;
     ```
 
-*Note: The application is configured to use `root` as the username. Check `backend/src/main/resources/application.properties` if you need to adjust credentials.*
+_Note: The application is configured to use `root` as the username. Check `backend/src/main/resources/application.properties` if you need to adjust credentials._
 
 ### 2. Backend Setup
 
@@ -78,7 +81,7 @@ The backend runs on port `8080`.
     ```bash
     ./mvnw spring-boot:run
     ```
-    *You should see logs indicating the application has started on port 8080.*
+    _You should see logs indicating the application has started on port 8080._
 
 ### 3. Frontend Setup
 
@@ -104,10 +107,11 @@ The frontend runs on port `4200`.
 ## 🔍 Application Demo & Verification
 
 ### Login / Register
+
 To demonstrate the application flows, you can register a new user or use the following test account (if you've created it):
 
-*   **Email**: `test@test.com`
-*   **Password**: `password`
+- **Email**: `test@test.com`
+- **Password**: `password`
 
 ### Verifying Data Persistence
 
@@ -122,18 +126,21 @@ To show that data is accurately being stored in the database, you can query the 
     USE tiptracker_db;
     ```
 3.  **View Registered Users**:
+
     ```sql
     SELECT * FROM users;
     ```
-    *This will display ID, email, username, and role.*
+
+    _This will display ID, email, username, and role._
 
 4.  **View Tip Entries**:
     ```sql
     SELECT * FROM tip_entry;
     ```
-    *This will show all tracked shift data.*
+    _This will show all tracked shift data._
 
 ---
 
 ## 📝 License
+
 This project is intended for educational and portfolio purposes.
