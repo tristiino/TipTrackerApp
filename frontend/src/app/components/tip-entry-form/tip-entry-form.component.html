@@ -13,12 +13,22 @@
         <div class="tip-inputs">
           <div class="tip-input-group">
             <span class="tip-input-label">Cash</span>
-            <input id="cashTips" type="number" formControlName="cashTips" placeholder="0.00" min="0" step="0.01" />
+            <input id="cashTips" type="number" formControlName="cashTips" placeholder="0.00" min="0" step="0.01"
+              [class.input-error]="submitted && tipForm.get('cashTips')?.invalid" />
           </div>
           <div class="tip-input-group">
             <span class="tip-input-label">Credit</span>
-            <input id="creditTips" type="number" formControlName="creditTips" placeholder="0.00" min="0" step="0.01" />
+            <input id="creditTips" type="number" formControlName="creditTips" placeholder="0.00" min="0" step="0.01"
+              [class.input-error]="submitted && tipForm.get('creditTips')?.invalid" />
           </div>
+        </div>
+        <div *ngIf="submitted && tipForm.get('cashTips')?.invalid" class="field-error">
+          <span *ngIf="tipForm.get('cashTips')?.errors?.['required']">Cash tips amount is required.</span>
+          <span *ngIf="tipForm.get('cashTips')?.errors?.['min']">Cash tips cannot be negative.</span>
+        </div>
+        <div *ngIf="submitted && tipForm.get('creditTips')?.invalid" class="field-error">
+          <span *ngIf="tipForm.get('creditTips')?.errors?.['required']">Credit tips amount is required.</span>
+          <span *ngIf="tipForm.get('creditTips')?.errors?.['min']">Credit tips cannot be negative.</span>
         </div>
         <!-- Real-time total (P1-008) -->
         <div class="tip-total">
@@ -40,10 +50,13 @@
           <svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
           Shift Type
         </label>
-        <div class="shift-buttons">
+        <div class="shift-buttons" [class.shift-error]="submitted && tipForm.get('shiftType')?.invalid">
           <button type="button" (click)="selectShift('Morning')" [class.active]="tipForm.get('shiftType')?.value === 'Morning'">Morning</button>
           <button type="button" (click)="selectShift('Evening')" [class.active]="tipForm.get('shiftType')?.value === 'Evening'">Evening</button>
           <button type="button" (click)="selectShift('Night')" [class.active]="tipForm.get('shiftType')?.value === 'Night'">Night</button>
+        </div>
+        <div *ngIf="submitted && tipForm.get('shiftType')?.invalid" class="field-error">
+          Please select a shift type.
         </div>
       </div>
 
@@ -82,12 +95,17 @@
           <svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
           Number of People in Tip Pool
         </label>
-        <input id="peopleInPool" type="number" formControlName="peopleInPool" placeholder="e.g. 4" />
+        <input id="peopleInPool" type="number" formControlName="peopleInPool" placeholder="e.g. 4"
+          [class.input-error]="submitted && tipForm.get('peopleInPool')?.invalid" />
+        <div *ngIf="submitted && tipForm.get('peopleInPool')?.invalid" class="field-error">
+          <span *ngIf="tipForm.get('peopleInPool')?.errors?.['required']">Number of people in tip pool is required.</span>
+          <span *ngIf="tipForm.get('peopleInPool')?.errors?.['min']">Must be at least 1 person.</span>
+        </div>
       </div>
 
       <div class="form-actions">
         <button type="button" class="cancel-btn" (click)="onCancel()">Cancel</button>
-        <button type="submit" class="submit-btn" [disabled]="tipForm.invalid">Submit</button>
+        <button type="submit" class="submit-btn">Submit</button>
       </div>
 
       <div *ngIf="submissionMessage" class="submission-message" [class.error]="isError">
