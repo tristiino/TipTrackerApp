@@ -25,8 +25,8 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/login`, credentials).pipe(
       map((response: any) => {
         if (response.token && response.user) {
-          localStorage.setItem('token', response.token);
-          localStorage.setItem('user', JSON.stringify(response.user));
+          sessionStorage.setItem('token', response.token);
+          sessionStorage.setItem('user', JSON.stringify(response.user));
           this.isLoggedInSubject.next(true);
         }
         return response;
@@ -39,8 +39,8 @@ export class AuthService {
    * and updating the application's authentication state.
    */
   logout(): void {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
     this.isLoggedInSubject.next(false);
   }
 
@@ -49,7 +49,7 @@ export class AuthService {
    * @returns The JWT string or null if not present.
    */
   getToken(): string | null {
-    return localStorage.getItem('token');
+    return sessionStorage.getItem('token');
   }
 
   /**
@@ -57,7 +57,7 @@ export class AuthService {
    * @returns The user object or null if not present.
    */
   getUser(): any {
-    const user = localStorage.getItem('user');
+    const user = sessionStorage.getItem('user');
     return user ? JSON.parse(user) : null;
   }
 

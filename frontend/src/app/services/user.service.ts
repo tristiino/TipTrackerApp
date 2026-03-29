@@ -36,6 +36,6 @@ export class UserService {
   }
 
   logout(): void {
-    localStorage.removeItem('token'); // optional if you're using tokens
+    sessionStorage.removeItem('token'); // optional if you're using tokens
   }
 }
