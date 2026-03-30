@@ -170,19 +170,23 @@ public class TipEntryService {
     }
 
     /**
-     * Returns aggregated tip earnings for the last N days, grouped by day/week/month.
-     * Uses a DB-level aggregate query for performance with large datasets.
+     * Returns aggregated tip earnings grouped by day/week/month.
+     * Supply either {@code days} (rolling window ending today) or explicit {@code startDate}/{@code endDate}.
+     * When all are null, defaults to the last 30 days.
      * @param userEmail The email of the authenticated user.
-     * @param days      The number of days to look back (e.g. 30).
+     * @param days      Rolling-window size (optional).
      * @param groupBy   Aggregation period: "day", "week", or "month".
+     * @param startDate Explicit range start (optional).
+     * @param endDate   Explicit range end (optional).
      * @return A list of DailyEarningsDTO sorted ascending by period start date.
      */
-    public List<DailyEarningsDTO> getDailyEarnings(String userEmail, int days, String groupBy) {
+    public List<DailyEarningsDTO> getDailyEarnings(String userEmail, Integer days, String groupBy,
+                                                    LocalDate startDate, LocalDate endDate) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + userEmail));
 
-        LocalDate end   = LocalDate.now();
-        LocalDate start = end.minusDays(days - 1);
+        LocalDate end   = endDate   != null ? endDate   : LocalDate.now();
+        LocalDate start = startDate != null ? startDate : end.minusDays((days != null ? days : 30) - 1);
 
         // Fetch per-day aggregates from DB (no full entity load)
         List<Object[]> rows = tipEntryRepository.findDailyAggregates(user.getId(), start, end);
@@ -249,17 +253,21 @@ public class TipEntryService {
     }
 
     /**
-     * Returns aggregated summary stats for the dashboard over a rolling N-day window.
+     * Returns aggregated summary stats for the dashboard.
+     * Supply either {@code days} (rolling window ending today) or explicit {@code startDate}/{@code endDate}.
+     * When all are null, defaults to the last 30 days.
      * @param userEmail The email of the authenticated user.
-     * @param days      The number of days to look back.
+     * @param days      Rolling-window size (optional).
+     * @param startDate Explicit range start (optional).
+     * @param endDate   Explicit range end (optional).
      * @return A DashboardSummaryDTO with totals, shift count, and hourly wage estimate.
      */
-    public DashboardSummaryDTO getDashboardSummary(String userEmail, int days) {
+    public DashboardSummaryDTO getDashboardSummary(String userEmail, Integer days, LocalDate startDate, LocalDate endDate) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + userEmail));
 
-        LocalDate end   = LocalDate.now();
-        LocalDate start = end.minusDays(days - 1);
+        LocalDate end   = endDate   != null ? endDate   : LocalDate.now();
+        LocalDate start = startDate != null ? startDate : end.minusDays((days != null ? days : 30) - 1);
         List<TipEntry> tips = tipEntryRepository.findByUserIdAndDateBetween(user.getId(), start, end);
 
         double totalTips    = tips.stream().mapToDouble(TipEntry::getAmount).sum();

@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { AuthService } from 'src/app/services/auth.service';
 import { LanguageService } from 'src/app/services/language.service';
 import { ThemeService } from 'src/app/services/theme.service';
+import { PayPeriodService } from 'src/app/services/pay-period.service';
 
 
 @Component({
@@ -20,17 +21,21 @@ export class SettingsComponent implements OnInit {
     private languageService: LanguageService,
     private themeService: ThemeService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private payPeriodService: PayPeriodService,
   ) {}
 
   ngOnInit(): void {
     const savedTheme = localStorage.getItem('theme') || 'light';
     const savedLanguage = localStorage.getItem('language') || 'english';
+    const savedPeriod = this.payPeriodService.getPayPeriod();
 
     this.settingsForm = this.fb.group({
-      taxRate: [3, [Validators.required, Validators.min(0)]],
-      theme: [savedTheme, Validators.required],
-      language: [savedLanguage, Validators.required]
+      taxRate:         [3, [Validators.required, Validators.min(0)]],
+      theme:           [savedTheme, Validators.required],
+      language:        [savedLanguage, Validators.required],
+      payPeriodStart:  [savedPeriod?.startDate ?? ''],
+      payPeriodEnd:    [savedPeriod?.endDate   ?? ''],
     });
 
     this.languageService.language$.subscribe(lang => {
@@ -38,34 +43,28 @@ export class SettingsComponent implements OnInit {
     });
   }
 
-  /**
-   * Applies the selected theme by calling the ThemeService.
-   * Triggered by the (change) event on the theme dropdown.
-   * @param event The browser event from the select element.
-   */
   applyTheme(event: Event): void {
     const theme = (event.target as HTMLSelectElement).value;
     this.themeService.setTheme(theme);
   }
 
-  /**
-   * Applies the selected language by calling the LanguageService.
-   * Triggered by the (change) event on the language dropdown.
-   * @param event The browser event from the select element.
-   */
   applyLanguage(event: Event): void {
     const language = (event.target as HTMLSelectElement).value;
     this.languageService.setLanguage(language);
   }
 
-  /**
-   * Handles the form submission to save settings.
-   * Note: Currently logs to console; would be extended to save to a backend.
-   */
   onSubmit(): void {
     if (this.settingsForm.valid) {
+      const { payPeriodStart, payPeriodEnd } = this.settingsForm.value;
+
+      if (payPeriodStart && payPeriodEnd) {
+        this.payPeriodService.setPayPeriod({ startDate: payPeriodStart, endDate: payPeriodEnd });
+      } else {
+        this.payPeriodService.clearPayPeriod();
+      }
+
       console.log('Settings saved:', this.settingsForm.value);
-      alert('Settings saved!'); // Simple user feedback
+      alert('Settings saved!');
     }
   }
 
@@ -78,11 +77,14 @@ export class SettingsComponent implements OnInit {
     const defaultLanguage = 'english';
     const defaultTheme = 'light';
     this.settingsForm.reset({
-      taxRate: 3,
-      theme: defaultTheme,
-      language: defaultLanguage
+      taxRate:        3,
+      theme:          defaultTheme,
+      language:       defaultLanguage,
+      payPeriodStart: '',
+      payPeriodEnd:   '',
     });
     this.themeService.setTheme(defaultTheme);
     this.languageService.setLanguage(defaultLanguage);
+    this.payPeriodService.clearPayPeriod();
   }
 }
