@@ -167,6 +167,24 @@
   }
 }
 
+// --- No pay period notice ---
+.no-pay-period {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+  padding: $space-5 0;
+  color: #64748b;
+  font-size: $font-size-sm;
+
+  svg { flex-shrink: 0; color: #475569; }
+
+  a {
+    color: #0d6efd;
+    text-decoration: none;
+    &:hover { text-decoration: underline; }
+  }
+}
+
 // --- Stats row ---
 .stats-row {
   display: flex;

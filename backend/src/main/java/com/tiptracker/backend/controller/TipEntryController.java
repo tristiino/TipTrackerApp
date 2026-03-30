@@ -58,29 +58,42 @@ public class TipEntryController {
 
     /**
      * Returns aggregated summary stats (totals, shift count, hourly wage) for the dashboard.
-     * @param days      Number of days to look back (default: 30).
+     * Supply either {@code days} (rolling window from today) or {@code startDate}/{@code endDate}
+     * (explicit range). When both are absent, defaults to the last 30 days.
+     * @param days      Number of days to look back (optional).
+     * @param startDate Start of explicit date range (optional, ISO date).
+     * @param endDate   End of explicit date range (optional, ISO date).
      * @param principal The currently authenticated user.
      * @return A DashboardSummaryDTO.
      */
     @GetMapping("/summary")
     public ResponseEntity<DashboardSummaryDTO> getDashboardSummary(
-            @RequestParam(defaultValue = "30") int days,
+            @RequestParam(required = false) Integer days,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             Principal principal) {
-        return ResponseEntity.ok(service.getDashboardSummary(principal.getName(), days));
+        return ResponseEntity.ok(service.getDashboardSummary(principal.getName(), days, startDate, endDate));
     }
 
     /**
-     * Returns daily aggregated tip earnings for the last N days for the authenticated user.
-     * @param days      Number of days to look back (default: 30).
+     * Returns daily aggregated tip earnings for the authenticated user.
+     * Supply either {@code days} (rolling window from today) or {@code startDate}/{@code endDate}
+     * (explicit range). When both are absent, defaults to the last 30 days.
+     * @param days      Number of days to look back (optional).
+     * @param groupBy   Aggregation period: "day", "week", or "month".
+     * @param startDate Start of explicit date range (optional, ISO date).
+     * @param endDate   End of explicit date range (optional, ISO date).
      * @param principal The currently authenticated user.
      * @return A list of DailyEarningsDTO sorted ascending by date.
      */
     @GetMapping("/earnings/daily")
     public ResponseEntity<List<DailyEarningsDTO>> getDailyEarnings(
-            @RequestParam(defaultValue = "30") int days,
+            @RequestParam(required = false) Integer days,
             @RequestParam(defaultValue = "day") String groupBy,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             Principal principal) {
-        return ResponseEntity.ok(service.getDailyEarnings(principal.getName(), days, groupBy));
+        return ResponseEntity.ok(service.getDailyEarnings(principal.getName(), days, groupBy, startDate, endDate));
     }
 
     /**

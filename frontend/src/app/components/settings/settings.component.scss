@@ -40,6 +40,40 @@
   }
 }
 
+// Pay period row — overrides default form-group flex for a wider input area
+.pay-period-group {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  label { font-weight: 500; color: var(--text-color); }
+}
+
+.pay-period-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.pay-period-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.pay-period-field-label {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  font-weight: 500;
+}
+
+.pay-period-sep {
+  color: var(--text-light);
+  font-size: 0.875rem;
+  margin-top: 1.25rem;
+}
+
 // Container for the form buttons
 .form-actions {
   display: flex;
