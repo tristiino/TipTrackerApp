@@ -83,8 +83,14 @@
       </button>
     </div>
 
+    <!-- Pay period not configured notice -->
+    <div *ngIf="groupBy === 'payperiod' && !payPeriod && !isLoading" class="no-pay-period">
+      <svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>
+      <span>No pay period set. Go to <a routerLink="/settings">Settings</a> to add one.</span>
+    </div>
+
     <!-- Stats row -->
-    <div class="stats-row" *ngIf="!isLoading">
+    <div class="stats-row" *ngIf="!isLoading && !(groupBy === 'payperiod' && !payPeriod)">
       <div class="stat">
         <span class="stat-label">{{ activeMetricDef.label }}</span>
         <span class="stat-value" [style.color]="activeMetricDef.color">
@@ -105,8 +111,8 @@
       </div>
     </div>
 
-    <!-- Time range tabs -->
-    <div class="time-range-tabs">
+    <!-- Time range tabs (hidden in pay period mode) -->
+    <div class="time-range-tabs" *ngIf="groupBy !== 'payperiod'">
       <button
         *ngFor="let r of timeRanges"
         [class.active]="selectedDays === r.days"
@@ -121,7 +127,7 @@
         <span>Loading…</span>
       </div>
       <canvas
-        *ngIf="!isLoading"
+        *ngIf="!isLoading && !(groupBy === 'payperiod' && !payPeriod)"
         baseChart
         [data]="chartData"
         [options]="chartOptions"

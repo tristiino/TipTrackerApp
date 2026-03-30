@@ -27,6 +27,21 @@
         </select>
       </div>
 
+      <div class="form-group pay-period-group">
+        <label>Pay Period</label>
+        <div class="pay-period-inputs">
+          <div class="pay-period-field">
+            <span class="pay-period-field-label">Start</span>
+            <input type="date" id="payPeriodStart" formControlName="payPeriodStart" />
+          </div>
+          <span class="pay-period-sep">to</span>
+          <div class="pay-period-field">
+            <span class="pay-period-field-label">End</span>
+            <input type="date" id="payPeriodEnd" formControlName="payPeriodEnd" />
+          </div>
+        </div>
+      </div>
+
       <div class="form-actions">
         <button type="button" class="btn btn-secondary" (click)="onReset()">{{ translations['reset'] }}</button>
         <button type="submit" class="btn btn-primary" [disabled]="!settingsForm.valid">{{ translations['save'] }}</button>

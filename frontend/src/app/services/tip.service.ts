@@ -60,4 +60,23 @@ export class TipService {
   getDashboardSummary(days: number = 30): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/summary?days=${days}`);
   }
+
+  /**
+   * Fetches daily aggregated earnings for an explicit date range.
+   * @param startDate ISO date string (YYYY-MM-DD).
+   * @param endDate   ISO date string (YYYY-MM-DD).
+   * @param groupBy   Aggregation period: 'day', 'week', or 'month'.
+   */
+  getDailyEarningsByDateRange(startDate: string, endDate: string, groupBy: string = 'day'): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/earnings/daily?startDate=${startDate}&endDate=${endDate}&groupBy=${groupBy}`);
+  }
+
+  /**
+   * Fetches dashboard summary stats for an explicit date range.
+   * @param startDate ISO date string (YYYY-MM-DD).
+   * @param endDate   ISO date string (YYYY-MM-DD).
+   */
+  getDashboardSummaryByDateRange(startDate: string, endDate: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/summary?startDate=${startDate}&endDate=${endDate}`);
+  }
 }
