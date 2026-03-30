@@ -232,6 +232,7 @@
 // --- Group-by toggle (Daily / Weekly / Monthly) ---
 .groupby-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: $space-1;
   margin-bottom: $space-4;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
@@ -264,6 +265,7 @@
 // --- Time range tabs (below stats, above chart) ---
 .time-range-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: $space-1;
   margin-bottom: $space-5;
 
