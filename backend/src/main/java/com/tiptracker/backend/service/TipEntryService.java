@@ -11,6 +11,7 @@ import com.tiptracker.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import com.tiptracker.backend.dto.UserSettingsDTO;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -30,8 +31,9 @@ public class TipEntryService {
 
     private final TipEntryRepository tipEntryRepository;
     private final UserRepository userRepository;
+    private final SettingsService settingsService;
 
-    private static final double TAX_RATE = 0.03;
+    private static final double DEFAULT_TAX_RATE = 0.03;
     private static final double TIP_SHARE_RATE = 0.10;
 
     /**
@@ -123,17 +125,11 @@ public class TipEntryService {
     public ReportSummaryDTO getReportSummary(String userEmail, LocalDate start, LocalDate end) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + userEmail));
-        return getReportSummary(user.getId(), start, end);
+        double taxRate = getUserTaxRate(userEmail);
+        return getReportSummary(user.getId(), start, end, taxRate);
     }
 
-    /**
-     * Generates a financial summary report for a given user and date range.
-     * @param userId The ID of the user for whom the report is generated.
-     * @param start The start date of the report period.
-     * @param end The end date of the report period.
-     * @return A DTO containing the calculated summary and a list of tip entries.
-     */
-    public ReportSummaryDTO getReportSummary(Long userId, LocalDate start, LocalDate end) {
+    private ReportSummaryDTO getReportSummary(Long userId, LocalDate start, LocalDate end, double taxRate) {
         List<TipEntry> tips = tipEntryRepository.findByUserIdAndDateBetween(userId, start, end);
 
         List<TipEntryDTO> tipEntryDTOs = tips.stream().map(tip -> {
@@ -155,7 +151,7 @@ public class TipEntryService {
         double totalBeforeTax = tips.stream().mapToDouble(TipEntry::getAmount).sum();
         double tipShare = totalBeforeTax * TIP_SHARE_RATE;
         double grossEarnings = totalBeforeTax - tipShare;
-        double taxDeducted = grossEarnings * TAX_RATE;
+        double taxDeducted = grossEarnings * taxRate;
         double netEarnings = grossEarnings - taxDeducted;
 
         ReportSummaryDTO summary = new ReportSummaryDTO();
@@ -185,6 +181,8 @@ public class TipEntryService {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + userEmail));
 
+        double taxRate = getUserTaxRate(userEmail);
+
         LocalDate end   = endDate   != null ? endDate   : LocalDate.now();
         LocalDate start = startDate != null ? startDate : end.minusDays((days != null ? days : 30) - 1);
 
@@ -198,14 +196,14 @@ public class TipEntryService {
             double total    = row[1] != null ? ((Number) row[1]).doubleValue() : 0.0;
             double cash     = row[2] != null ? ((Number) row[2]).doubleValue() : 0.0;
             double credit   = row[3] != null ? ((Number) row[3]).doubleValue() : 0.0;
-            double net      = computeNet(total);
+            double net      = computeNet(total, taxRate);
             dailyMap.put(date, new DailyEarningsDTO(date, total, cash, credit, net));
         }
 
         if ("week".equals(groupBy)) {
-            return aggregateByWeek(start, end, dailyMap);
+            return aggregateByWeek(start, end, dailyMap, taxRate);
         } else if ("month".equals(groupBy)) {
-            return aggregateByMonth(start, end, dailyMap);
+            return aggregateByMonth(start, end, dailyMap, taxRate);
         } else {
             // Daily: fill every day (zeros for days with no tips)
             List<DailyEarningsDTO> result = new ArrayList<>();
@@ -216,13 +214,14 @@ public class TipEntryService {
         }
     }
 
-    private double computeNet(double total) {
+    private double computeNet(double total, double taxRate) {
         double gross = total - (total * TIP_SHARE_RATE);
-        return gross - (gross * TAX_RATE);
+        return gross - (gross * taxRate);
     }
 
     private List<DailyEarningsDTO> aggregateByWeek(LocalDate start, LocalDate end,
-                                                    Map<LocalDate, DailyEarningsDTO> dailyMap) {
+                                                    Map<LocalDate, DailyEarningsDTO> dailyMap,
+                                                    double taxRate) {
         LocalDate weekStart = start.with(DayOfWeek.MONDAY);
         List<DailyEarningsDTO> result = new ArrayList<>();
         for (LocalDate ws = weekStart; !ws.isAfter(end); ws = ws.plusWeeks(1)) {
@@ -231,13 +230,14 @@ public class TipEntryService {
                 DailyEarningsDTO day = dailyMap.get(d);
                 if (day != null) { total += day.getTotalTips(); cash += day.getCashTips(); credit += day.getCreditTips(); }
             }
-            result.add(new DailyEarningsDTO(ws, total, cash, credit, computeNet(total)));
+            result.add(new DailyEarningsDTO(ws, total, cash, credit, computeNet(total, taxRate)));
         }
         return result;
     }
 
     private List<DailyEarningsDTO> aggregateByMonth(LocalDate start, LocalDate end,
-                                                     Map<LocalDate, DailyEarningsDTO> dailyMap) {
+                                                     Map<LocalDate, DailyEarningsDTO> dailyMap,
+                                                     double taxRate) {
         LocalDate monthStart = start.withDayOfMonth(1);
         List<DailyEarningsDTO> result = new ArrayList<>();
         for (LocalDate ms = monthStart; !ms.isAfter(end); ms = ms.plusMonths(1)) {
@@ -247,7 +247,7 @@ public class TipEntryService {
                 DailyEarningsDTO day = dailyMap.get(d);
                 if (day != null) { total += day.getTotalTips(); cash += day.getCashTips(); credit += day.getCreditTips(); }
             }
-            result.add(new DailyEarningsDTO(ms, total, cash, credit, computeNet(total)));
+            result.add(new DailyEarningsDTO(ms, total, cash, credit, computeNet(total, taxRate)));
         }
         return result;
     }
@@ -270,10 +270,11 @@ public class TipEntryService {
         LocalDate start = startDate != null ? startDate : end.minusDays((days != null ? days : 30) - 1);
         List<TipEntry> tips = tipEntryRepository.findByUserIdAndDateBetween(user.getId(), start, end);
 
+        double taxRate      = getUserTaxRate(userEmail);
         double totalTips    = tips.stream().mapToDouble(TipEntry::getAmount).sum();
         double tipShare     = totalTips * TIP_SHARE_RATE;
         double gross        = totalTips - tipShare;
-        double netEarnings  = gross - (gross * TAX_RATE);
+        double netEarnings  = gross - (gross * taxRate);
         int    shifts       = tips.size();
         double avgPerShift  = shifts > 0 ? totalTips / shifts : 0.0;
 
@@ -312,5 +313,14 @@ public class TipEntryService {
             dto.setTipShare(tip.getAmount() * TIP_SHARE_RATE);
             return dto;
         }).collect(Collectors.toList());
+    }
+
+    private double getUserTaxRate(String userEmail) {
+        try {
+            UserSettingsDTO settings = settingsService.getSettings(userEmail);
+            return settings.getTaxRate();
+        } catch (Exception e) {
+            return DEFAULT_TAX_RATE;
+        }
     }
 }

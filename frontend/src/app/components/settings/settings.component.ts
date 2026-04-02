@@ -5,6 +5,7 @@ import { AuthService } from 'src/app/services/auth.service';
 import { LanguageService } from 'src/app/services/language.service';
 import { ThemeService } from 'src/app/services/theme.service';
 import { PayPeriodService } from 'src/app/services/pay-period.service';
+import { SettingsService, UserSettings } from 'src/app/services/settings.service';
 
 
 @Component({
@@ -15,6 +16,7 @@ import { PayPeriodService } from 'src/app/services/pay-period.service';
 export class SettingsComponent implements OnInit {
   settingsForm!: FormGroup;
   translations: { [key: string]: string } = {};
+  isSaving = false;
 
   constructor(
     private fb: FormBuilder,
@@ -23,19 +25,20 @@ export class SettingsComponent implements OnInit {
     private authService: AuthService,
     private router: Router,
     private payPeriodService: PayPeriodService,
+    private settingsService: SettingsService,
   ) {}
 
   ngOnInit(): void {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    const savedLanguage = localStorage.getItem('language') || 'english';
-    const savedPeriod = this.payPeriodService.getPayPeriod();
+    const cached = this.settingsService.getCachedSettings();
+    const config = this.payPeriodService.getConfig();
 
     this.settingsForm = this.fb.group({
-      taxRate:         [3, [Validators.required, Validators.min(0)]],
-      theme:           [savedTheme, Validators.required],
-      language:        [savedLanguage, Validators.required],
-      payPeriodStart:  [savedPeriod?.startDate ?? ''],
-      payPeriodEnd:    [savedPeriod?.endDate   ?? ''],
+      // taxRate stored as decimal (0.03) — multiply by 100 for the % display field
+      taxRate:              [cached ? cached.taxRate * 100 : 3, [Validators.required, Validators.min(0)]],
+      theme:                [cached?.theme    ?? 'light',   Validators.required],
+      language:             [cached?.language ?? 'english', Validators.required],
+      payPeriodStartAnchor: [config?.startAnchor ?? ''],
+      payPeriodLengthDays:  [config?.lengthDays  ?? 14, [Validators.min(1)]],
     });
 
     this.languageService.language$.subscribe(lang => {
@@ -55,16 +58,32 @@ export class SettingsComponent implements OnInit {
 
   onSubmit(): void {
     if (this.settingsForm.valid) {
-      const { payPeriodStart, payPeriodEnd } = this.settingsForm.value;
+      const { taxRate, theme, language, payPeriodStartAnchor, payPeriodLengthDays } = this.settingsForm.value;
 
-      if (payPeriodStart && payPeriodEnd) {
-        this.payPeriodService.setPayPeriod({ startDate: payPeriodStart, endDate: payPeriodEnd });
-      } else {
-        this.payPeriodService.clearPayPeriod();
-      }
+      const dto: UserSettings = {
+        theme,
+        language,
+        taxRate: taxRate / 100,  // convert % → decimal before sending to backend
+        payPeriodStartAnchor: payPeriodStartAnchor || null,
+        payPeriodLengthDays:  payPeriodLengthDays ?? 14,
+      };
 
-      console.log('Settings saved:', this.settingsForm.value);
-      alert('Settings saved!');
+      this.isSaving = true;
+      this.settingsService.updateSettings(dto).subscribe({
+        next: () => {
+          if (payPeriodStartAnchor && payPeriodLengthDays > 0) {
+            this.payPeriodService.setConfig({ startAnchor: payPeriodStartAnchor, lengthDays: payPeriodLengthDays });
+          } else {
+            this.payPeriodService.clearConfig();
+          }
+          this.isSaving = false;
+          alert('Settings saved!');
+        },
+        error: () => {
+          this.isSaving = false;
+          alert('Failed to save settings. Please try again.');
+        }
+      });
     }
   }
 
@@ -77,14 +96,14 @@ export class SettingsComponent implements OnInit {
     const defaultLanguage = 'english';
     const defaultTheme = 'light';
     this.settingsForm.reset({
-      taxRate:        3,
-      theme:          defaultTheme,
-      language:       defaultLanguage,
-      payPeriodStart: '',
-      payPeriodEnd:   '',
+      taxRate:              3,
+      theme:                defaultTheme,
+      language:             defaultLanguage,
+      payPeriodStartAnchor: '',
+      payPeriodLengthDays:  14,
     });
     this.themeService.setTheme(defaultTheme);
     this.languageService.setLanguage(defaultLanguage);
-    this.payPeriodService.clearPayPeriod();
+    this.payPeriodService.clearConfig();
   }
 }

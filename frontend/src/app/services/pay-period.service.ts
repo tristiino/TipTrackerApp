@@ -1,24 +1,61 @@
 import { Injectable } from '@angular/core';
 
+/** The computed window for the current pay cycle — consumed by the dashboard and reports. */
 export interface PayPeriod {
   startDate: string; // YYYY-MM-DD
   endDate: string;   // YYYY-MM-DD
 }
 
+/** What is persisted — an anchor date and a fixed cycle length in days. */
+export interface PayPeriodConfig {
+  startAnchor: string; // YYYY-MM-DD — the start of the user's first pay period
+  lengthDays: number;  // e.g. 7 (weekly), 14 (bi-weekly), 15 (semi-monthly)
+}
+
 @Injectable({ providedIn: 'root' })
 export class PayPeriodService {
-  private readonly STORAGE_KEY = 'payPeriod';
+  private readonly STORAGE_KEY = 'payPeriodConfig';
 
-  getPayPeriod(): PayPeriod | null {
+  getConfig(): PayPeriodConfig | null {
     const stored = localStorage.getItem(this.STORAGE_KEY);
     return stored ? JSON.parse(stored) : null;
   }
 
-  setPayPeriod(period: PayPeriod): void {
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(period));
+  setConfig(config: PayPeriodConfig): void {
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(config));
   }
 
-  clearPayPeriod(): void {
+  clearConfig(): void {
     localStorage.removeItem(this.STORAGE_KEY);
+  }
+
+  /**
+   * Computes which pay-cycle window contains today based on the stored config.
+   * Steps forward from the anchor in increments of lengthDays until reaching
+   * the current period — no manual update needed when a cycle rolls over.
+   */
+  getCurrentPayPeriod(): PayPeriod | null {
+    const config = this.getConfig();
+    if (!config || !config.startAnchor || config.lengthDays <= 0) return null;
+
+    const anchor = new Date(config.startAnchor + 'T00:00:00');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const daysSinceAnchor = Math.floor((today.getTime() - anchor.getTime()) / msPerDay);
+
+    // If today is before the anchor, return the first period
+    const periodsElapsed = daysSinceAnchor < 0 ? 0 : Math.floor(daysSinceAnchor / config.lengthDays);
+    const currentStart = this.addDays(config.startAnchor, periodsElapsed * config.lengthDays);
+    const currentEnd = this.addDays(currentStart, config.lengthDays - 1);
+
+    return { startDate: currentStart, endDate: currentEnd };
+  }
+
+  private addDays(dateStr: string, days: number): string {
+    const d = new Date(dateStr + 'T00:00:00');
+    d.setDate(d.getDate() + days);
+    return d.toISOString().split('T')[0];
   }
 }

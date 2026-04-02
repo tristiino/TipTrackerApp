@@ -31,13 +31,12 @@
         <label>Pay Period</label>
         <div class="pay-period-inputs">
           <div class="pay-period-field">
-            <span class="pay-period-field-label">Start</span>
-            <input type="date" id="payPeriodStart" formControlName="payPeriodStart" />
+            <span class="pay-period-field-label">Cycle Start</span>
+            <input type="date" id="payPeriodStartAnchor" formControlName="payPeriodStartAnchor" />
           </div>
-          <span class="pay-period-sep">to</span>
           <div class="pay-period-field">
-            <span class="pay-period-field-label">End</span>
-            <input type="date" id="payPeriodEnd" formControlName="payPeriodEnd" />
+            <span class="pay-period-field-label">Cycle Length (days)</span>
+            <input type="number" id="payPeriodLengthDays" formControlName="payPeriodLengthDays" min="1" />
           </div>
         </div>
       </div>

@@ -45,7 +45,6 @@ export class LanguageService {
    */
   setLanguage(language: string): void {
     this.languageSubject.next(language);
-    localStorage.setItem('language', language);
   }
 
   /**
