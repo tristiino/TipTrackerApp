@@ -167,7 +167,7 @@ export class DashboardComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.payPeriod = this.payPeriodService.getPayPeriod();
+    this.payPeriod = this.payPeriodService.getCurrentPayPeriod();
     if (this.payPeriod) {
       this.loadPayPeriodData();
     } else {
@@ -178,7 +178,7 @@ export class DashboardComponent implements OnInit {
   setGroupBy(key: GroupBy): void {
     this.groupBy = key;
     if (key === 'payperiod') {
-      this.payPeriod = this.payPeriodService.getPayPeriod();
+      this.payPeriod = this.payPeriodService.getCurrentPayPeriod();
       if (this.payPeriod) {
         this.loadPayPeriodData();
       } else {
