@@ -53,29 +53,6 @@ export class PayPeriodService {
     return { startDate: currentStart, endDate: currentEnd };
   }
 
-  // ---------------------------------------------------------------------------
-  // Backward-compatible shims — used by SettingsComponent until Step 7 removes them
-  // ---------------------------------------------------------------------------
-
-  /** @deprecated Use getCurrentPayPeriod() */
-  getPayPeriod(): PayPeriod | null {
-    return this.getCurrentPayPeriod();
-  }
-
-  /** @deprecated Use setConfig() */
-  setPayPeriod(period: PayPeriod): void {
-    const start = new Date(period.startDate + 'T00:00:00');
-    const end = new Date(period.endDate + 'T00:00:00');
-    const msPerDay = 24 * 60 * 60 * 1000;
-    const lengthDays = Math.round((end.getTime() - start.getTime()) / msPerDay) + 1;
-    this.setConfig({ startAnchor: period.startDate, lengthDays });
-  }
-
-  /** @deprecated Use clearConfig() */
-  clearPayPeriod(): void {
-    this.clearConfig();
-  }
-
   private addDays(dateStr: string, days: number): string {
     const d = new Date(dateStr + 'T00:00:00');
     d.setDate(d.getDate() + days);
