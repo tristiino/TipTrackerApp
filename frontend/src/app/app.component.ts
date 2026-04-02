@@ -3,6 +3,8 @@ import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { ThemeService } from './services/theme.service';
 import { LanguageService } from './services/language.service';
+import { AuthService } from './services/auth.service';
+import { SettingsService } from './services/settings.service';
 
 /**
  * The root component of the application, serving as the main app shell.
@@ -13,22 +15,30 @@ import { LanguageService } from './services/language.service';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
-  // A flag to determine if the current route is for login/register.
   isLoginOrRegister = false;
 
   constructor(
     private router: Router,
     private themeService: ThemeService,
-    private languageService: LanguageService
+    private languageService: LanguageService,
+    private authService: AuthService,
+    private settingsService: SettingsService
   ) {}
 
-  /**
-   * On component initialization, load saved user preferences and subscribe
-   * to router events to determine which navbar to display.
-   */
   ngOnInit(): void {
+    // Apply cached theme and language immediately so there is no flash on cold start
     this.themeService.loadTheme();
     this.languageService.loadLanguage();
+
+    // Whenever the user is authenticated (on login or on page refresh with an active session),
+    // fetch the latest settings from the server and apply them.
+    this.authService.isLoggedIn$.pipe(
+      filter(isLoggedIn => isLoggedIn)
+    ).subscribe(() => {
+      this.settingsService.loadSettings().subscribe({
+        error: () => { /* silently keep the cached values on network failure */ }
+      });
+    });
 
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd)
@@ -37,10 +47,6 @@ export class AppComponent implements OnInit {
     });
   }
 
-  /**
-   * A helper method used by the template to check the current route status.
-   * @returns True if the current route is /login or /register.
-   */
   isLoginOrRegisterRoute(): boolean {
     return this.isLoginOrRegister;
   }

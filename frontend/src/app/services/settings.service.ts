@@ -68,5 +68,8 @@ export class SettingsService {
 
   private cacheSettings(settings: UserSettings): void {
     localStorage.setItem(this.CACHE_KEY, JSON.stringify(settings));
+    // Keep individual keys in sync so ThemeService/LanguageService cold-start reads still work
+    localStorage.setItem('theme', settings.theme);
+    localStorage.setItem('language', settings.language);
   }
 }

@@ -32,7 +32,5 @@ export class ThemeService {
 
     this.renderer.removeClass(document.body, `${oldTheme}-theme`);
     this.renderer.addClass(document.body, `${theme}-theme`);
-
-    localStorage.setItem('theme', theme);
   }
 }
