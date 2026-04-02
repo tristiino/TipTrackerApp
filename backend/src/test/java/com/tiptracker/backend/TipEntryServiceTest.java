@@ -6,7 +6,9 @@ import com.tiptracker.backend.model.TipEntry;
 import com.tiptracker.backend.model.User;
 import com.tiptracker.backend.repository.TipEntryRepository;
 import com.tiptracker.backend.repository.UserRepository;
+import com.tiptracker.backend.service.SettingsService;
 import com.tiptracker.backend.service.TipEntryService;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,6 +23,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 /**
@@ -38,6 +41,8 @@ class TipEntryServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private SettingsService settingsService;
 
     @InjectMocks
     private TipEntryService tipEntryService;
@@ -76,10 +81,10 @@ class TipEntryServiceTest {
         // 2. Tell the mock repository what to return when its method is called.
         when(tipEntryRepository.findByUserIdAndDateBetween(anyLong(), any(LocalDate.class), any(LocalDate.class)))
                 .thenReturn(tips);
-
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(testUser));
 
         // 3. Call the actual service method we want to test.
-        ReportSummaryDTO result = tipEntryService.getReportSummary(testUser.getId(), startDate, endDate);
+        ReportSummaryDTO result = tipEntryService.getReportSummary(testUser.getEmail(), startDate, endDate);
 
 
         // 4. Check if the calculations are correct. 10% tip share, 3% tax rate.
@@ -101,10 +106,10 @@ class TipEntryServiceTest {
         // 1. Tell the mock repository to return an empty list.
         when(tipEntryRepository.findByUserIdAndDateBetween(anyLong(), any(LocalDate.class), any(LocalDate.class)))
                 .thenReturn(new ArrayList<>());
-
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(testUser));
 
         // 2. Call the service method.
-        ReportSummaryDTO result = tipEntryService.getReportSummary(testUser.getId(), startDate, endDate);
+        ReportSummaryDTO result = tipEntryService.getReportSummary(testUser.getEmail(), startDate, endDate);
 
 
         // 3. Check if all values are zero.
