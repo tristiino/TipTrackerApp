@@ -6,6 +6,8 @@ frontend/cypress/
 frontend/cypress.config.ts
 # Personal (not committed)
 PRIVATE_NOTES.md
+CLAUDE.md
+**/CLAUDE.md
 
 # Backend (Java/Maven)
 backend/target/
