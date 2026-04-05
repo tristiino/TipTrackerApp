@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents a single Tip Entry entity in the database,
@@ -77,5 +79,14 @@ public class TipEntry {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    /**
+     * The tip-out deductions applied to this shift.
+     * CascadeType.ALL + orphanRemoval means records are deleted automatically
+     * when the shift is deleted or when we clear and re-apply roles on update.
+     * mappedBy="tipEntry" means the FK (tip_entry_id) lives on TipOutRecord's side.
+     */
+    @OneToMany(mappedBy = "tipEntry", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TipOutRecord> tipOutRecords = new ArrayList<>();
 
 }

@@ -66,6 +66,13 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TipEntry> tipEntries = new ArrayList<>();
 
+    /**
+     * The tip-out role templates this user has configured.
+     * Deleted automatically if the user is deleted (CascadeType.ALL).
+     */
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TipOutRole> tipOutRoles = new ArrayList<>();
+
 
     // --- UserDetails Interface Implementation ---
 

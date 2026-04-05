@@ -1,110 +1,92 @@
 package com.tiptracker.backend.service;
 
-import com.tiptracker.backend.dto.DailyEarningsDTO;
-import com.tiptracker.backend.dto.DashboardSummaryDTO;
-import com.tiptracker.backend.dto.ReportSummaryDTO;
-import com.tiptracker.backend.dto.TipEntryDTO;
+import com.tiptracker.backend.dto.*;
 import com.tiptracker.backend.model.TipEntry;
+import com.tiptracker.backend.model.TipOutRecord;
 import com.tiptracker.backend.model.User;
 import com.tiptracker.backend.repository.TipEntryRepository;
+import com.tiptracker.backend.repository.TipOutRecordRepository;
 import com.tiptracker.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import com.tiptracker.backend.dto.UserSettingsDTO;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * Service handling all business logic related to Tip Entries.
- * This includes CRUD operations and report generation.
+ * This includes CRUD operations and report/dashboard generation.
+ *
+ * Phase 2 changes:
+ * - TIP_SHARE_RATE (hardcoded 10%) removed. Deductions now come from real
+ *   TipOutRecord rows, which users configure via TipOutService.
+ * - saveTip / updateTip now accept TipEntryRequest (includes tipOutRoleIds).
+ * - computeNet now takes the actual tip-out total instead of a flat rate.
+ * - getDailyEarnings, getDashboardSummary, getReportSummary, getRecentTips
+ *   all populate the new grossTips / totalTipOut / netTips DTO fields.
  */
 @Service
 @RequiredArgsConstructor
 public class TipEntryService {
 
     private final TipEntryRepository tipEntryRepository;
+    private final TipOutRecordRepository tipOutRecordRepository;
     private final UserRepository userRepository;
     private final SettingsService settingsService;
+    private final TipOutService tipOutService;
 
     private static final double DEFAULT_TAX_RATE = 0.03;
-    private static final double TIP_SHARE_RATE = 0.10;
+
+    // -------------------------------------------------------------------------
+    // CRUD
+    // -------------------------------------------------------------------------
 
     /**
-     * Saves a new tip entry and associates it with the currently authenticated user.
-     * @param tip The TipEntry object to save.
-     * @param userEmail The email of the currently logged-in user.
-     * @return The saved TipEntry entity.
+     * Saves a new tip entry for the authenticated user.
+     * After saving, applies any selected tip-out roles and returns a full DTO
+     * (including the resolved tip-out records) rather than the raw entity.
      */
-    public TipEntry saveTip(TipEntry tip, String userEmail) {
-    User user = userRepository.findByEmail(userEmail)
-            .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + userEmail));
-    tip.setUser(user);
+    @Transactional
+    public TipEntryDTO saveTip(TipEntryRequest request, String userEmail) {
+        User user = resolveUser(userEmail);
 
-    // Validate cash/credit fields and compute total amount
-    double cash = tip.getCashTips() != null ? tip.getCashTips() : 0.0;
-    double credit = tip.getCreditTips() != null ? tip.getCreditTips() : 0.0;
+        TipEntry tip = new TipEntry();
+        tip.setUser(user);
+        populateTipFromRequest(tip, request);
+        TipEntry saved = tipEntryRepository.save(tip);
 
-    if (cash < 0 || credit < 0) {
-        throw new IllegalArgumentException("Tip amounts cannot be negative.");
+        // Apply tip-out roles if any were selected (P2-002)
+        List<TipOutRecordDTO> records = tipOutService.applyRolesToEntry(saved, request.getTipOutRoleIds());
+
+        return toDTO(saved, records);
     }
-
-    // Calculate total amount
-    if (tip.getCashTips() != null || tip.getCreditTips() != null) {
-        tip.setAmount(cash + credit);
-    }
-
-    // Calculate hours worked
-    if (tip.getStartTime() != null && tip.getEndTime() != null) {
-        long minutes = java.time.Duration.between(tip.getStartTime(), tip.getEndTime()).toMinutes();
-        tip.setHoursWorked(minutes / 60.0);
-    }
-
-    return tipEntryRepository.save(tip);
-}
-
 
     /**
-     * Updates an existing tip entry by its ID.
-     * @param id The ID of the tip to update.
-     * @param tipDetails An object containing the new data for the tip.
-     * @return The updated TipEntry entity.
+     * Updates an existing tip entry.
+     * Clears and re-applies tip-out records so the user's new role selection
+     * is always reflected accurately.
      */
-    public TipEntry updateTip(Long id, TipEntry tipDetails) {
-        TipEntry existingTip = tipEntryRepository.findById(id)
+    @Transactional
+    public TipEntryDTO updateTip(Long id, TipEntryRequest request) {
+        TipEntry existing = tipEntryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Tip entry not found with id: " + id));
 
-        existingTip.setDate(tipDetails.getDate());
-        existingTip.setShiftType(tipDetails.getShiftType());
-        existingTip.setNotes(tipDetails.getNotes());
-        existingTip.setCashTips(tipDetails.getCashTips());
-        existingTip.setCreditTips(tipDetails.getCreditTips());
-        existingTip.setStartTime(tipDetails.getStartTime());
-        existingTip.setEndTime(tipDetails.getEndTime());
-        existingTip.setHoursWorked(tipDetails.getHoursWorked());
+        populateTipFromRequest(existing, request);
+        TipEntry saved = tipEntryRepository.save(existing);
 
-        // Recalculate amount from cashTips + creditTips when provided
-        if (tipDetails.getCashTips() != null || tipDetails.getCreditTips() != null) {
-            double cash   = tipDetails.getCashTips()   != null ? tipDetails.getCashTips()   : 0;
-            double credit = tipDetails.getCreditTips() != null ? tipDetails.getCreditTips() : 0;
-            existingTip.setAmount(cash + credit);
-        } else {
-            existingTip.setAmount(tipDetails.getAmount());
-        }
+        // Re-apply roles: clear old records, then apply the new selection
+        tipOutRecordRepository.deleteByTipEntry(saved);
+        List<TipOutRecordDTO> records = tipOutService.applyRolesToEntry(saved, request.getTipOutRoleIds());
 
-
-        return tipEntryRepository.save(existingTip);
+        return toDTO(saved, records);
     }
 
     /**
-     * Deletes a tip entry by its ID.
-     * @param id The ID of the tip to delete.
+     * Deletes a tip entry (cascades to its TipOutRecord children automatically).
      */
     public void deleteTip(Long id) {
         if (!tipEntryRepository.existsById(id)) {
@@ -113,206 +95,271 @@ public class TipEntryService {
         tipEntryRepository.deleteById(id);
     }
 
-    /**
-     * Generates a financial summary report for the authenticated user (identified by email)
-     * within a given date range. The user ID is resolved server-side from the email so that
-     * no user-supplied identifier can be used to access another user's data.
-     * @param userEmail The email of the authenticated user (derived from the JWT principal).
-     * @param start The start date of the report period.
-     * @param end The end date of the report period.
-     * @return A DTO containing the calculated summary and a list of tip entries.
-     */
+    // -------------------------------------------------------------------------
+    // Report summary
+    // -------------------------------------------------------------------------
+
     public ReportSummaryDTO getReportSummary(String userEmail, LocalDate start, LocalDate end) {
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + userEmail));
+        User user = resolveUser(userEmail);
         double taxRate = getUserTaxRate(userEmail);
-        return getReportSummary(user.getId(), start, end, taxRate);
+        return buildReportSummary(user.getId(), start, end, taxRate);
     }
 
-    private ReportSummaryDTO getReportSummary(Long userId, LocalDate start, LocalDate end, double taxRate) {
+    private ReportSummaryDTO buildReportSummary(Long userId, LocalDate start, LocalDate end, double taxRate) {
         List<TipEntry> tips = tipEntryRepository.findByUserIdAndDateBetween(userId, start, end);
 
+        // Map each shift to its DTO, including tip-out records
         List<TipEntryDTO> tipEntryDTOs = tips.stream().map(tip -> {
-            TipEntryDTO dto = new TipEntryDTO();
-            dto.setId(tip.getId());
-            dto.setAmount(tip.getAmount());
-            dto.setDate(tip.getDate());
-            dto.setNotes(tip.getNotes());
-            dto.setShiftType(tip.getShiftType());
-            dto.setCashTips(tip.getCashTips());
-            dto.setCreditTips(tip.getCreditTips());
-            dto.setStartTime(tip.getStartTime());
-            dto.setEndTime(tip.getEndTime());
-            dto.setHoursWorked(tip.getHoursWorked());
-            dto.setTipShare(tip.getAmount() * TIP_SHARE_RATE);
-            return dto;
+            List<TipOutRecordDTO> records = tipOutService.getRecordsForEntry(tip);
+            return toDTO(tip, records);
         }).collect(Collectors.toList());
 
         double totalBeforeTax = tips.stream().mapToDouble(TipEntry::getAmount).sum();
-        double tipShare = totalBeforeTax * TIP_SHARE_RATE;
-        double grossEarnings = totalBeforeTax - tipShare;
-        double taxDeducted = grossEarnings * taxRate;
-        double netEarnings = grossEarnings - taxDeducted;
+        double totalTipOut    = tipEntryDTOs.stream().mapToDouble(TipEntryDTO::getTotalTipOut).sum();
+        double afterTipOut    = totalBeforeTax - totalTipOut;
+        double taxDeducted    = afterTipOut * taxRate;
+        double netEarnings    = afterTipOut - taxDeducted;
 
         ReportSummaryDTO summary = new ReportSummaryDTO();
         summary.setTipEntries(tipEntryDTOs);
         summary.setTotalBeforeTax(totalBeforeTax);
-        summary.setTotalTipShare(tipShare);
-        summary.setGrossEarnings(grossEarnings);
+        summary.setTotalTipOut(totalTipOut);
+        summary.setTotalTipShare(totalTipOut);   // backward compat alias
+        summary.setGrossEarnings(afterTipOut);
         summary.setTotalTax(taxDeducted);
         summary.setNetEarnings(netEarnings);
-
         return summary;
     }
 
+    // -------------------------------------------------------------------------
+    // Daily earnings chart
+    // -------------------------------------------------------------------------
+
     /**
      * Returns aggregated tip earnings grouped by day/week/month.
-     * Supply either {@code days} (rolling window ending today) or explicit {@code startDate}/{@code endDate}.
-     * When all are null, defaults to the last 30 days.
-     * @param userEmail The email of the authenticated user.
-     * @param days      Rolling-window size (optional).
-     * @param groupBy   Aggregation period: "day", "week", or "month".
-     * @param startDate Explicit range start (optional).
-     * @param endDate   Explicit range end (optional).
-     * @return A list of DailyEarningsDTO sorted ascending by period start date.
+     * Now includes grossTips per period (for the P2-006 dashboard toggle)
+     * and computes netEarnings using real tip-out records instead of a flat rate.
      */
     public List<DailyEarningsDTO> getDailyEarnings(String userEmail, Integer days, String groupBy,
                                                     LocalDate startDate, LocalDate endDate) {
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + userEmail));
-
+        User user = resolveUser(userEmail);
         double taxRate = getUserTaxRate(userEmail);
 
         LocalDate end   = endDate   != null ? endDate   : LocalDate.now();
         LocalDate start = startDate != null ? startDate : end.minusDays((days != null ? days : 30) - 1);
 
-        // Fetch per-day aggregates from DB (no full entity load)
+        // Fetch per-day tip totals from DB
         List<Object[]> rows = tipEntryRepository.findDailyAggregates(user.getId(), start, end);
 
-        // Build date → DTO map from aggregate rows
+        // Fetch per-day tip-out totals from DB
+        List<Object[]> tipOutRows = tipOutRecordRepository.findDailyTipOutAggregates(user.getId(), start, end);
+        Map<LocalDate, Double> tipOutByDate = new LinkedHashMap<>();
+        for (Object[] row : tipOutRows) {
+            tipOutByDate.put((LocalDate) row[0], row[1] != null ? ((Number) row[1]).doubleValue() : 0.0);
+        }
+
+        // Build date → DTO map
         Map<LocalDate, DailyEarningsDTO> dailyMap = new LinkedHashMap<>();
         for (Object[] row : rows) {
             LocalDate date  = (LocalDate) row[0];
             double total    = row[1] != null ? ((Number) row[1]).doubleValue() : 0.0;
             double cash     = row[2] != null ? ((Number) row[2]).doubleValue() : 0.0;
             double credit   = row[3] != null ? ((Number) row[3]).doubleValue() : 0.0;
-            double net      = computeNet(total, taxRate);
-            dailyMap.put(date, new DailyEarningsDTO(date, total, cash, credit, net));
+            double tipOut   = tipOutByDate.getOrDefault(date, 0.0);
+            double net      = computeNet(total, tipOut, taxRate);
+            dailyMap.put(date, new DailyEarningsDTO(date, total, cash, credit, net, total));
+            // grossTips = total (the raw amount before any deductions)
         }
 
         if ("week".equals(groupBy)) {
-            return aggregateByWeek(start, end, dailyMap, taxRate);
+            return aggregateByWeek(start, end, dailyMap, tipOutByDate, taxRate);
         } else if ("month".equals(groupBy)) {
-            return aggregateByMonth(start, end, dailyMap, taxRate);
+            return aggregateByMonth(start, end, dailyMap, tipOutByDate, taxRate);
         } else {
-            // Daily: fill every day (zeros for days with no tips)
+            // Daily: fill every day in range (zeros for days with no tips)
             List<DailyEarningsDTO> result = new ArrayList<>();
             for (LocalDate d = start; !d.isAfter(end); d = d.plusDays(1)) {
-                result.add(dailyMap.getOrDefault(d, new DailyEarningsDTO(d, 0, 0, 0, 0)));
+                result.add(dailyMap.getOrDefault(d, new DailyEarningsDTO(d, 0, 0, 0, 0, 0)));
             }
             return result;
         }
     }
 
-    private double computeNet(double total, double taxRate) {
-        double gross = total - (total * TIP_SHARE_RATE);
-        return gross - (gross * taxRate);
+    // -------------------------------------------------------------------------
+    // Dashboard summary
+    // -------------------------------------------------------------------------
+
+    public DashboardSummaryDTO getDashboardSummary(String userEmail, Integer days,
+                                                    LocalDate startDate, LocalDate endDate) {
+        User user = resolveUser(userEmail);
+
+        LocalDate end   = endDate   != null ? endDate   : LocalDate.now();
+        LocalDate start = startDate != null ? startDate : end.minusDays((days != null ? days : 30) - 1);
+
+        List<TipEntry> tips = tipEntryRepository.findByUserIdAndDateBetween(user.getId(), start, end);
+        double taxRate    = getUserTaxRate(userEmail);
+        double grossTips  = tips.stream().mapToDouble(TipEntry::getAmount).sum();
+
+        // Real tip-out total for the period (replaces hardcoded 10%)
+        double totalTipOut = tipOutRecordRepository.sumFinalAmountByUserAndDateRange(user.getId(), start, end);
+        double afterTipOut = grossTips - totalTipOut;
+        double netEarnings = afterTipOut - (afterTipOut * taxRate);
+
+        int    shifts       = tips.size();
+        double avgPerShift  = shifts > 0 ? grossTips / shifts : 0.0;
+        double totalHours   = tips.stream()
+                .filter(t -> t.getHoursWorked() != null && t.getHoursWorked() > 0)
+                .mapToDouble(TipEntry::getHoursWorked)
+                .sum();
+        double hourlyWage   = totalHours > 0 ? grossTips / totalHours : 0.0;
+
+        DashboardSummaryDTO dto = new DashboardSummaryDTO();
+        dto.setTotalTips(grossTips);
+        dto.setGrossTips(grossTips);
+        dto.setNetEarnings(netEarnings);
+        dto.setShiftsWorked(shifts);
+        dto.setAvgTipsPerShift(avgPerShift);
+        dto.setTotalHoursWorked(totalHours);
+        dto.setEstimatedHourlyWage(hourlyWage);
+        dto.setTotalTipOut(totalTipOut);
+        return dto;
+    }
+
+    // -------------------------------------------------------------------------
+    // Recent tips
+    // -------------------------------------------------------------------------
+
+    public List<TipEntryDTO> getRecentTips(String userEmail) {
+        User user = resolveUser(userEmail);
+        return tipEntryRepository.findTop7ByUserOrderByDateDesc(user)
+                .stream()
+                .map(tip -> toDTO(tip, tipOutService.getRecordsForEntry(tip)))
+                .collect(Collectors.toList());
+    }
+
+    // -------------------------------------------------------------------------
+    // Private helpers
+    // -------------------------------------------------------------------------
+
+    /**
+     * Copies all editable fields from a request DTO onto a TipEntry entity.
+     * Shared by saveTip and updateTip to avoid duplication.
+     */
+    private void populateTipFromRequest(TipEntry tip, TipEntryRequest req) {
+        tip.setDate(req.getDate());
+        tip.setShiftType(req.getShiftType());
+        tip.setNotes(req.getNotes());
+        tip.setCashTips(req.getCashTips());
+        tip.setCreditTips(req.getCreditTips());
+        tip.setStartTime(req.getStartTime());
+        tip.setEndTime(req.getEndTime());
+        tip.setHoursWorked(req.getHoursWorked());
+
+        double cash   = req.getCashTips()   != null ? req.getCashTips()   : 0.0;
+        double credit = req.getCreditTips() != null ? req.getCreditTips() : 0.0;
+
+        if (cash < 0 || credit < 0) {
+            throw new IllegalArgumentException("Tip amounts cannot be negative.");
+        }
+
+        // Compute total from cash + credit when provided; fall back to raw amount
+        if (req.getCashTips() != null || req.getCreditTips() != null) {
+            tip.setAmount(cash + credit);
+        } else {
+            tip.setAmount(req.getAmount());
+        }
+
+        // Auto-calculate hours if times are provided but hoursWorked wasn't sent
+        if (req.getStartTime() != null && req.getEndTime() != null && req.getHoursWorked() == null) {
+            long minutes = java.time.Duration.between(req.getStartTime(), req.getEndTime()).toMinutes();
+            tip.setHoursWorked(minutes / 60.0);
+        }
+    }
+
+    /**
+     * Converts a TipEntry + its pre-fetched tip-out records into a TipEntryDTO.
+     * Central mapping used by all service methods that return shift data.
+     */
+    private TipEntryDTO toDTO(TipEntry tip, List<TipOutRecordDTO> records) {
+        double totalTipOut = records.stream().mapToDouble(TipOutRecordDTO::getFinalAmount).sum();
+
+        TipEntryDTO dto = new TipEntryDTO();
+        dto.setId(tip.getId());
+        dto.setAmount(tip.getAmount());
+        dto.setDate(tip.getDate());
+        dto.setNotes(tip.getNotes());
+        dto.setShiftType(tip.getShiftType());
+        dto.setCashTips(tip.getCashTips());
+        dto.setCreditTips(tip.getCreditTips());
+        dto.setStartTime(tip.getStartTime());
+        dto.setEndTime(tip.getEndTime());
+        dto.setHoursWorked(tip.getHoursWorked());
+        dto.setTipOutRecords(records);
+        dto.setTotalTipOut(totalTipOut);
+        dto.setNetTips(tip.getAmount() - totalTipOut);
+        dto.setTipShare(totalTipOut);   // backward compat alias
+        return dto;
+    }
+
+    /**
+     * Calculates take-home net earnings after tip-outs and tax.
+     *
+     * Old (Phase 1): computeNet(total, taxRate) used hardcoded 10% share
+     * New (Phase 2): actual tipOutTotal passed in; no hardcoded rate
+     */
+    private double computeNet(double grossTips, double tipOutTotal, double taxRate) {
+        double afterTipOut = grossTips - tipOutTotal;
+        return afterTipOut - (afterTipOut * taxRate);
     }
 
     private List<DailyEarningsDTO> aggregateByWeek(LocalDate start, LocalDate end,
                                                     Map<LocalDate, DailyEarningsDTO> dailyMap,
+                                                    Map<LocalDate, Double> tipOutByDate,
                                                     double taxRate) {
         LocalDate weekStart = start.with(DayOfWeek.MONDAY);
         List<DailyEarningsDTO> result = new ArrayList<>();
         for (LocalDate ws = weekStart; !ws.isAfter(end); ws = ws.plusWeeks(1)) {
-            double total = 0, cash = 0, credit = 0;
+            double total = 0, cash = 0, credit = 0, tipOut = 0;
             for (LocalDate d = ws; !d.isAfter(ws.plusDays(6)) && !d.isAfter(end); d = d.plusDays(1)) {
                 DailyEarningsDTO day = dailyMap.get(d);
-                if (day != null) { total += day.getTotalTips(); cash += day.getCashTips(); credit += day.getCreditTips(); }
+                if (day != null) {
+                    total  += day.getTotalTips();
+                    cash   += day.getCashTips();
+                    credit += day.getCreditTips();
+                }
+                tipOut += tipOutByDate.getOrDefault(d, 0.0);
             }
-            result.add(new DailyEarningsDTO(ws, total, cash, credit, computeNet(total, taxRate)));
+            result.add(new DailyEarningsDTO(ws, total, cash, credit, computeNet(total, tipOut, taxRate), total));
         }
         return result;
     }
 
     private List<DailyEarningsDTO> aggregateByMonth(LocalDate start, LocalDate end,
                                                      Map<LocalDate, DailyEarningsDTO> dailyMap,
+                                                     Map<LocalDate, Double> tipOutByDate,
                                                      double taxRate) {
         LocalDate monthStart = start.withDayOfMonth(1);
         List<DailyEarningsDTO> result = new ArrayList<>();
         for (LocalDate ms = monthStart; !ms.isAfter(end); ms = ms.plusMonths(1)) {
             LocalDate me = ms.plusMonths(1).minusDays(1);
-            double total = 0, cash = 0, credit = 0;
+            double total = 0, cash = 0, credit = 0, tipOut = 0;
             for (LocalDate d = ms; !d.isAfter(me) && !d.isAfter(end); d = d.plusDays(1)) {
                 DailyEarningsDTO day = dailyMap.get(d);
-                if (day != null) { total += day.getTotalTips(); cash += day.getCashTips(); credit += day.getCreditTips(); }
+                if (day != null) {
+                    total  += day.getTotalTips();
+                    cash   += day.getCashTips();
+                    credit += day.getCreditTips();
+                }
+                tipOut += tipOutByDate.getOrDefault(d, 0.0);
             }
-            result.add(new DailyEarningsDTO(ms, total, cash, credit, computeNet(total, taxRate)));
+            result.add(new DailyEarningsDTO(ms, total, cash, credit, computeNet(total, tipOut, taxRate), total));
         }
         return result;
     }
 
-    /**
-     * Returns aggregated summary stats for the dashboard.
-     * Supply either {@code days} (rolling window ending today) or explicit {@code startDate}/{@code endDate}.
-     * When all are null, defaults to the last 30 days.
-     * @param userEmail The email of the authenticated user.
-     * @param days      Rolling-window size (optional).
-     * @param startDate Explicit range start (optional).
-     * @param endDate   Explicit range end (optional).
-     * @return A DashboardSummaryDTO with totals, shift count, and hourly wage estimate.
-     */
-    public DashboardSummaryDTO getDashboardSummary(String userEmail, Integer days, LocalDate startDate, LocalDate endDate) {
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + userEmail));
-
-        LocalDate end   = endDate   != null ? endDate   : LocalDate.now();
-        LocalDate start = startDate != null ? startDate : end.minusDays((days != null ? days : 30) - 1);
-        List<TipEntry> tips = tipEntryRepository.findByUserIdAndDateBetween(user.getId(), start, end);
-
-        double taxRate      = getUserTaxRate(userEmail);
-        double totalTips    = tips.stream().mapToDouble(TipEntry::getAmount).sum();
-        double tipShare     = totalTips * TIP_SHARE_RATE;
-        double gross        = totalTips - tipShare;
-        double netEarnings  = gross - (gross * taxRate);
-        int    shifts       = tips.size();
-        double avgPerShift  = shifts > 0 ? totalTips / shifts : 0.0;
-
-        double totalHours   = tips.stream()
-                .filter(t -> t.getHoursWorked() != null && t.getHoursWorked() > 0)
-                .mapToDouble(TipEntry::getHoursWorked)
-                .sum();
-        double hourlyWage   = totalHours > 0 ? totalTips / totalHours : 0.0;
-
-        return new DashboardSummaryDTO(totalTips, netEarnings, shifts, avgPerShift, totalHours, hourlyWage);
-    }
-
-    /**
-     * Fetches the 7 most recent tip entries for a given user.
-     * @param userEmail The email of the user whose recent tips are to be fetched.
-     * @return A list of DTOs representing the recent tips.
-     */
-    public List<TipEntryDTO> getRecentTips(String userEmail) {
-        User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + userEmail));
-
-        List<TipEntry> recentTips = tipEntryRepository.findTop7ByUserOrderByDateDesc(user);
-
-        return recentTips.stream().map(tip -> {
-            TipEntryDTO dto = new TipEntryDTO();
-            dto.setId(tip.getId());
-            dto.setAmount(tip.getAmount());
-            dto.setDate(tip.getDate());
-            dto.setNotes(tip.getNotes());
-            dto.setShiftType(tip.getShiftType());
-            dto.setCashTips(tip.getCashTips());
-            dto.setCreditTips(tip.getCreditTips());
-            dto.setStartTime(tip.getStartTime());
-            dto.setEndTime(tip.getEndTime());
-            dto.setHoursWorked(tip.getHoursWorked());
-            dto.setTipShare(tip.getAmount() * TIP_SHARE_RATE);
-            return dto;
-        }).collect(Collectors.toList());
+    private User resolveUser(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
     }
 
     private double getUserTaxRate(String userEmail) {
