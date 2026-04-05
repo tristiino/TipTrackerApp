@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ReportService } from 'src/app/services/report.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { TipService } from 'src/app/services/tip.service';
+import { TipOutRoleService } from '../../services/tip-out-role.service';
 import { saveAs } from 'file-saver';
 
 
@@ -26,6 +27,7 @@ export class ReportsComponent implements OnInit {
     private reportService: ReportService,
     private authService: AuthService,
     private tipService: TipService,
+    private tipOutRoleService: TipOutRoleService,
     private fb: FormBuilder
   ) {
     this.editForm = this.fb.group({
@@ -34,7 +36,6 @@ export class ReportsComponent implements OnInit {
       date:         ['', [Validators.required]],
       shiftType:    ['', [Validators.required]],
       notes:        [''],
-      peopleInPool: ['', [Validators.required, Validators.min(1)]],
       startTime:    [''],
       endTime:      [''],
     });
@@ -112,7 +113,6 @@ export class ReportsComponent implements OnInit {
       date:         tip.date,
       shiftType:    tip.shiftType    ?? '',
       notes:        tip.notes        ?? '',
-      peopleInPool: tip.peopleInPool ?? 1,
       startTime:    tip.startTime    ?? '',
       endTime:      tip.endTime      ?? '',
     });
@@ -156,16 +156,35 @@ export class ReportsComponent implements OnInit {
   }
 
   /**
+   * Handles a tip-out record override emitted by <app-tip-out-breakdown>.
+   * Calls the API to persist the change, then reloads the report so totals update.
+   */
+  onRecordOverridden(event: { recordId: number; finalAmount: number }): void {
+    this.tipOutRoleService.overrideRecord(event.recordId, event.finalAmount).subscribe({
+      next: () => this.loadReport(),
+      error: (err) => console.error('Failed to save override:', err)
+    });
+  }
+
+  /**
    * Exports the current list of tip entries to a CSV file.
+   * Phase 2: includes totalTipOut and netTips columns.
    */
   exportToCSV(): void {
     if (!this.report || !this.report.tipEntries || this.report.tipEntries.length === 0) {
       return;
     }
     const data = this.report.tipEntries;
-    const headers = ['Date', 'Amount', 'Tip Share', 'Shift Type', 'Notes'];
+    const headers = ['Date', 'Gross Amount', 'Total Tip-Out', 'Net Tips', 'Shift Type', 'Notes'];
     const rows = data.map((entry: any) =>
-      [entry.date, entry.amount, entry.tipShare, entry.shiftType, JSON.stringify(entry.notes)].join(',')
+      [
+        entry.date,
+        entry.amount,
+        entry.totalTipOut ?? entry.tipShare ?? 0,
+        entry.netTips ?? entry.amount,
+        entry.shiftType,
+        JSON.stringify(entry.notes ?? '')
+      ].join(',')
     );
     const csvContent = [headers.join(','), ...rows].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
