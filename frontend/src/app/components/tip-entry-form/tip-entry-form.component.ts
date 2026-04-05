@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TipService } from '../../services/tip.service';
+import { TipOutRoleService } from '../../services/tip-out-role.service';
+import { TipOutRole } from '../../models/tip-out-role.model';
 
 @Component({
   selector: 'app-tip-entry-form',
@@ -14,9 +16,14 @@ export class TipEntryFormComponent implements OnInit {
   recentTips: any[] = [];
   submitted = false;
 
+  // --- Phase 2: Tip-Out fields ---
+  availableRoles: TipOutRole[] = [];
+  selectedRoleIds: number[] = [];
+
   constructor(
     private fb: FormBuilder,
-    private tipService: TipService
+    private tipService: TipService,
+    private tipOutRoleService: TipOutRoleService
   ) {
     this.tipForm = this.fb.group({
       cashTips:    ['', [Validators.required, Validators.min(0)]],
@@ -24,7 +31,6 @@ export class TipEntryFormComponent implements OnInit {
       date:        [new Date().toISOString().split('T')[0], [Validators.required]],
       shiftType:   ['', [Validators.required]],
       notes:       [''],
-      peopleInPool:['', [Validators.required, Validators.min(1)]],
       startTime:   [''],
       endTime:     [''],
 
@@ -56,8 +62,58 @@ export class TipEntryFormComponent implements OnInit {
     return cash + credit;
   }
 
+  // --- Phase 2: Real-time tip-out preview (P2-003) ---
+
+  /** Computes the estimated deduction for each selected role given current totalTips. */
+  get tipOutPreview(): { role: TipOutRole; amount: number }[] {
+    return this.selectedRoleIds
+      .map(id => this.availableRoles.find(r => r.id === id))
+      .filter((r): r is TipOutRole => !!r)
+      .map(role => ({ role, amount: this.getRolePreviewAmount(role) }));
+  }
+
+  getRolePreviewAmount(role: TipOutRole): number {
+    const cash   = parseFloat(this.tipForm.get('cashTips')?.value)   || 0;
+    const credit = parseFloat(this.tipForm.get('creditTips')?.value) || 0;
+    const base   = role.source === 'CASH' ? cash
+                 : role.source === 'CREDIT' ? credit
+                 : cash + credit;
+    return role.splitType === 'PERCENTAGE' ? base * role.amount / 100 : role.amount;
+  }
+
+  get estimatedTipOut(): number {
+    return this.tipOutPreview.reduce((sum, p) => sum + p.amount, 0);
+  }
+
+  get estimatedNet(): number {
+    return this.totalTips - this.estimatedTipOut;
+  }
+
+  toggleRole(roleId: number): void {
+    const idx = this.selectedRoleIds.indexOf(roleId);
+    if (idx === -1) {
+      this.selectedRoleIds.push(roleId);
+    } else {
+      this.selectedRoleIds.splice(idx, 1);
+    }
+  }
+
+  isRoleSelected(roleId: number): boolean {
+    return this.selectedRoleIds.includes(roleId);
+  }
+
+  formatRoleLabel(role: TipOutRole): string {
+    return role.splitType === 'PERCENTAGE'
+      ? `${role.name} — ${role.amount}%`
+      : `${role.name} — $${role.amount.toFixed(2)} flat`;
+  }
+
   ngOnInit(): void {
     this.loadRecentTips();
+    this.tipOutRoleService.getRoles().subscribe({
+      next: (roles) => this.availableRoles = roles,
+      error: (err) => console.error('Failed to load tip-out roles', err)
+    });
   }
 
   loadRecentTips(): void {
@@ -89,7 +145,13 @@ export class TipEntryFormComponent implements OnInit {
       return;
     }
 
-    this.tipService.addTip(this.tipForm.value).subscribe({
+    // Include selected tip-out role IDs in the payload (P2-002)
+    const payload = {
+      ...this.tipForm.value,
+      tipOutRoleIds: this.selectedRoleIds
+    };
+
+    this.tipService.addTip(payload).subscribe({
       next: () => {
         this.isError = false;
         this.submitted = false;
@@ -100,6 +162,7 @@ export class TipEntryFormComponent implements OnInit {
           localStorage.setItem(`shiftStart_${shift}`, start);
         }
         this.tipForm.reset({ date: new Date().toISOString().split('T')[0], startTime: '', endTime: '' });
+        this.selectedRoleIds = [];
         this.loadRecentTips();
         setTimeout(() => this.submissionMessage = null, 3000);
       },

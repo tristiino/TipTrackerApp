@@ -8,6 +8,7 @@ import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { ReportsComponent } from './components/reports/reports.component';
 import {AuthGuard} from "./guards/auth.guard";
 import { HomeComponent } from './components/home/home.component';
+import { TipOutRoleManagerComponent } from './components/tip-out-role-manager/tip-out-role-manager.component';
 
 
 const routes: Routes = [
@@ -20,7 +21,8 @@ const routes: Routes = [
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard] },
   { path: 'tip-entry-form', component: TipEntryFormComponent, canActivate: [AuthGuard] },
   { path: 'settings', component: SettingsComponent, canActivate: [AuthGuard] },
-  { path: 'reports', component: ReportsComponent, canActivate: [AuthGuard] }
+  { path: 'reports', component: ReportsComponent, canActivate: [AuthGuard] },
+  { path: 'tip-out-roles', component: TipOutRoleManagerComponent, canActivate: [AuthGuard] }
 ];
 
 @NgModule({
