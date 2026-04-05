@@ -179,4 +179,39 @@
 
   </div><!-- end charts-row -->
 
+  <!-- Tip-Out Breakdown card (Phase 2 P2-006) — scoped to the current period -->
+  <div class="chart-card tipout-summary-card" *ngIf="summary && !isLoading">
+    <div class="chart-header">
+      <div class="chart-title-group">
+        <h2>Tip-Out Breakdown</h2>
+        <p class="chart-subtitle">{{ periodLabel }}</p>
+      </div>
+      <a routerLink="/tip-out-roles" class="tipout-manage-link">Manage roles</a>
+    </div>
+
+    <div class="tipout-summary-rows">
+      <div class="tipout-summary-row">
+        <span class="tipout-dot" style="background:#20c997"></span>
+        <span class="tipout-label">Gross Tips</span>
+        <span class="tipout-value">${{ (summary.grossTips ?? summary.totalTips) | number:'1.2-2' }}</span>
+      </div>
+      <div class="tipout-summary-row">
+        <span class="tipout-dot" style="background:#f87171"></span>
+        <span class="tipout-label">Total Tip-Out</span>
+        <span class="tipout-value tipout-value--neg">-${{ (summary.totalTipOut ?? 0) | number:'1.2-2' }}</span>
+      </div>
+      <div class="tipout-summary-divider"></div>
+      <div class="tipout-summary-row tipout-summary-row--total">
+        <span class="tipout-dot" style="background:#60a5fa"></span>
+        <span class="tipout-label">Net Take-Home</span>
+        <span class="tipout-value tipout-value--net">${{ summary.netEarnings | number:'1.2-2' }}</span>
+      </div>
+    </div>
+
+    <p class="tipout-no-roles-hint" *ngIf="(summary.totalTipOut ?? 0) === 0">
+      No tip-outs recorded this period.
+      <a routerLink="/tip-out-roles">Set up roles</a> to track them automatically.
+    </p>
+  </div>
+
 </div>

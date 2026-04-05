@@ -77,6 +77,8 @@ export class DashboardComponent implements OnInit {
     { key: 'cash',   label: 'Cash',         datasetIndex: 1, color: '#198754', bgColor: 'rgba(25, 135, 84, 0.12)',   dataKey: 'cashTips'    },
     { key: 'credit', label: 'Credit',       datasetIndex: 2, color: '#ffc107', bgColor: 'rgba(255, 193, 7, 0.12)',   dataKey: 'creditTips'  },
     { key: 'net',    label: 'Net Earnings', datasetIndex: 3, color: '#6f42c1', bgColor: 'rgba(111, 66, 193, 0.12)',  dataKey: 'netEarnings' },
+    // Phase 2 (P2-006): Gross tips before tip-outs — enables the gross vs. net comparison
+    { key: 'gross',  label: 'Gross Tips',   datasetIndex: 4, color: '#20c997', bgColor: 'rgba(32, 201, 151, 0.12)', dataKey: 'grossTips'   },
   ];
 
   get activeMetricDef(): Metric {
@@ -90,6 +92,8 @@ export class DashboardComponent implements OnInit {
       { label: 'Cash',         data: [], borderColor: '#198754', backgroundColor: 'rgba(25, 135, 84, 0.12)',   fill: true, tension: 0.4, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: '#198754', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2, hidden: true },
       { label: 'Credit',       data: [], borderColor: '#ffc107', backgroundColor: 'rgba(255, 193, 7, 0.12)',   fill: true, tension: 0.4, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: '#ffc107', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2, hidden: true },
       { label: 'Net Earnings', data: [], borderColor: '#6f42c1', backgroundColor: 'rgba(111, 66, 193, 0.12)', fill: true, tension: 0.4, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: '#6f42c1', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2, hidden: true },
+      // Phase 2 (P2-006): Gross tips dataset — hidden by default, toggled via metric buttons
+      { label: 'Gross Tips',   data: [], borderColor: '#20c997', backgroundColor: 'rgba(32, 201, 151, 0.12)', fill: true, tension: 0.4, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: '#20c997', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2, hidden: true },
     ],
   };
 
@@ -234,6 +238,8 @@ export class DashboardComponent implements OnInit {
         { ...this.chartData.datasets[1], data: earnings.map((d: any) => d.cashTips)    },
         { ...this.chartData.datasets[2], data: earnings.map((d: any) => d.creditTips)  },
         { ...this.chartData.datasets[3], data: earnings.map((d: any) => d.netEarnings) },
+        // Phase 2 (P2-006): gross tips before tip-out deductions
+        { ...this.chartData.datasets[4], data: earnings.map((d: any) => d.grossTips ?? d.totalTips) },
       ],
     };
 
