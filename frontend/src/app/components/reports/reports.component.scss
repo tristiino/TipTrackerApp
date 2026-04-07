@@ -34,11 +34,13 @@
     font-size: 0.9rem;
     font-weight: 500;
   }
-  input {
+  input, select {
     padding: 0.5rem 0.75rem;
     min-height: 44px;
     border-radius: 6px;
     border: 1px solid var(--border-color);
+    background: var(--surface-color);
+    color: var(--text-color);
   }
   .btn-primary {
     background-color: var(--primary-color);

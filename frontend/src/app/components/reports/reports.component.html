@@ -13,6 +13,14 @@
       <label for="endDate">End Date:</label>
       <input type="date" id="endDate" [(ngModel)]="endDate" />
     </div>
+    <div class="form-group" *ngIf="jobs.length > 0">
+      <label for="jobFilter">Job:</label>
+      <select id="jobFilter" [(ngModel)]="selectedJobId">
+        <option [ngValue]="null">All Jobs</option>
+        <option *ngFor="let job of jobs" [ngValue]="job.id">{{ job.name }}</option>
+        <option [ngValue]="0">Unassigned</option>
+      </select>
+    </div>
     <button class="btn-primary" (click)="loadReport()">View Report</button>
     <p *ngIf="dateRangeError" class="date-range-error">{{ dateRangeError }}</p>
   </div>
@@ -47,7 +55,7 @@
     </div>
   </div>
 
-  <div class="card entries-card" *ngIf="report && report.tipEntries.length; else noEntries">
+  <div class="card entries-card" *ngIf="report && filteredEntries.length; else noEntries">
     <h3>Tip Entries</h3>
     <div class="table-container">
       <table>
@@ -63,7 +71,7 @@
         </tr>
         </thead>
         <tbody>
-        <ng-container *ngFor="let entry of report.tipEntries">
+        <ng-container *ngFor="let entry of filteredEntries">
           <tr>
             <td>{{ entry.date | date: 'mediumDate' }}</td>
             <td>{{ entry.amount | currency }}</td>

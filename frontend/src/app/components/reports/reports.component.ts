@@ -4,6 +4,8 @@ import { ReportService } from 'src/app/services/report.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { TipService } from 'src/app/services/tip.service';
 import { TipOutRoleService } from '../../services/tip-out-role.service';
+import { JobService } from '../../services/job.service';
+import { Job } from '../../models/job.model';
 import { saveAs } from 'file-saver';
 
 
@@ -19,6 +21,18 @@ export class ReportsComponent implements OnInit {
   isLoading = false;
   dateRangeError: string = '';
 
+  // P2-009: job filter
+  jobs: Job[] = [];
+  selectedJobId: number | null = null;
+
+  get filteredEntries(): any[] {
+    if (!this.report?.tipEntries) return [];
+    if (this.selectedJobId === null) return this.report.tipEntries;
+    return this.report.tipEntries.filter((e: any) =>
+      this.selectedJobId === 0 ? !e.jobId : e.jobId === this.selectedJobId
+    );
+  }
+
   showEditModal = false;
   editingTip: any = null;
   editForm: FormGroup;
@@ -28,6 +42,7 @@ export class ReportsComponent implements OnInit {
     private authService: AuthService,
     private tipService: TipService,
     private tipOutRoleService: TipOutRoleService,
+    private jobService: JobService,
     private fb: FormBuilder
   ) {
     this.editForm = this.fb.group({
@@ -52,6 +67,10 @@ export class ReportsComponent implements OnInit {
    */
   ngOnInit(): void {
     this.loadReport();
+    this.jobService.getJobs().subscribe({
+      next: (jobs) => this.jobs = jobs,
+      error: () => {}
+    });
   }
 
   /**
