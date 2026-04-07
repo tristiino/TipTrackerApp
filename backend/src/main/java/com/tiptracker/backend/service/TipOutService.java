@@ -47,6 +47,7 @@ public class TipOutService {
     /**
      * Returns all tip-out roles for the authenticated user, sorted A→Z by name.
      */
+    @Transactional(readOnly = true)
     public List<TipOutRoleDTO> getRolesForUser(String userEmail) {
         User user = resolveUser(userEmail);
         return tipOutRoleRepository.findByUserOrderByNameAsc(user)

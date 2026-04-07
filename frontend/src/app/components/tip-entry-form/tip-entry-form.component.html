@@ -1,7 +1,7 @@
 <div class="tip-entry-container">
 
   <div class="form-card">
-    <h2>Tip Entry</h2>
+    <h2>{{ isEditMode ? 'Edit Tip Entry' : 'Tip Entry' }}</h2>
     <form [formGroup]="tipForm" (ngSubmit)="onSubmit()">
 
       <!-- Cash + Credit tip fields (P1-007) -->
@@ -132,8 +132,8 @@
       </div>
 
       <div class="form-actions">
-        <button type="button" class="cancel-btn" (click)="onCancel()">Cancel</button>
-        <button type="submit" class="submit-btn">Submit</button>
+        <button type="button" class="cancel-btn" (click)="onCancel()">{{ isEditMode ? 'Back' : 'Cancel' }}</button>
+        <button type="submit" class="submit-btn">{{ isEditMode ? 'Save Changes' : 'Submit' }}</button>
       </div>
 
       <div *ngIf="submissionMessage" class="submission-message" [class.error]="isError">

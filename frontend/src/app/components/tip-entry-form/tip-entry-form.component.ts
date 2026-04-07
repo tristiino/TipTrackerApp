@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TipService } from '../../services/tip.service';
 import { TipOutRoleService } from '../../services/tip-out-role.service';
 import { TipOutRole } from '../../models/tip-out-role.model';
@@ -18,6 +19,9 @@ export class TipEntryFormComponent implements OnInit {
   recentTips: any[] = [];
   submitted = false;
 
+  isEditMode = false;
+  editId: number | null = null;
+
   // --- Phase 2: Tip-Out fields ---
   availableRoles: TipOutRole[] = [];
   selectedRoleIds: number[] = [];
@@ -31,7 +35,9 @@ export class TipEntryFormComponent implements OnInit {
     private fb: FormBuilder,
     private tipService: TipService,
     private tipOutRoleService: TipOutRoleService,
-    private jobService: JobService
+    private jobService: JobService,
+    private route: ActivatedRoute,
+    private router: Router
   ) {
     this.tipForm = this.fb.group({
       cashTips:    ['', [Validators.required, Validators.min(0)]],
@@ -126,21 +132,55 @@ export class TipEntryFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    const idParam = this.route.snapshot.paramMap.get('id');
+    if (idParam) {
+      this.isEditMode = true;
+      this.editId = +idParam;
+      const tip = history.state?.tip;
+      if (tip) this.prefillFromTip(tip);
+    }
+
     this.loadRecentTips();
     this.tipOutRoleService.getRoles().subscribe({
-      next: (roles) => this.availableRoles = roles,
+      next: (roles) => {
+        this.availableRoles = roles;
+        // Re-apply role pre-selection after roles load (edit mode)
+        if (this.isEditMode) {
+          const tip = history.state?.tip;
+          if (tip?.tipOutRecords) {
+            this.selectedRoleIds = tip.tipOutRecords
+              .filter((r: any) => r.roleId != null)
+              .map((r: any) => r.roleId);
+          }
+        }
+      },
       error: (err) => console.error('Failed to load tip-out roles', err)
     });
     this.jobService.getJobs().subscribe({
       next: (jobs) => {
         this.jobs = jobs;
-        const lastId = localStorage.getItem(this.LAST_JOB_KEY);
-        if (lastId && jobs.find(j => j.id === +lastId)) {
-          this.selectedJobId = +lastId;
+        if (!this.isEditMode) {
+          const lastId = localStorage.getItem(this.LAST_JOB_KEY);
+          if (lastId && jobs.find(j => j.id === +lastId)) {
+            this.selectedJobId = +lastId;
+          }
         }
       },
       error: () => {}
     });
+  }
+
+  private prefillFromTip(tip: any): void {
+    this.tipForm.patchValue({
+      cashTips:   tip.cashTips   ?? tip.amount ?? 0,
+      creditTips: tip.creditTips ?? 0,
+      date:       tip.date,
+      shiftType:  tip.shiftType  ?? '',
+      notes:      tip.notes      ?? '',
+      startTime:  tip.startTime  ?? '',
+      endTime:    tip.endTime    ?? '',
+    });
+    this.selectedJobId = tip.jobId ?? null;
   }
 
   loadRecentTips(): void {
@@ -178,32 +218,43 @@ export class TipEntryFormComponent implements OnInit {
       jobId: this.selectedJobId ?? undefined
     };
 
-    this.tipService.addTip(payload).subscribe({
+    const request$ = this.isEditMode && this.editId != null
+      ? this.tipService.updateTip(this.editId, payload)
+      : this.tipService.addTip(payload);
+
+    request$.subscribe({
       next: () => {
         this.isError = false;
         this.submitted = false;
-        this.submissionMessage = 'Tip submitted successfully!';
         const shift = this.tipForm.get('shiftType')?.value;
         const start = this.tipForm.get('startTime')?.value;
-        if (shift && start) {
-          localStorage.setItem(`shiftStart_${shift}`, start);
-        }
+        if (shift && start) localStorage.setItem(`shiftStart_${shift}`, start);
         if (this.selectedJobId) localStorage.setItem(this.LAST_JOB_KEY, String(this.selectedJobId));
-        this.tipForm.reset({ date: new Date().toISOString().split('T')[0], startTime: '', endTime: '' });
-        this.selectedRoleIds = [];
-        this.selectedJobId = null;
-        this.loadRecentTips();
-        setTimeout(() => this.submissionMessage = null, 3000);
+
+        if (this.isEditMode) {
+          this.router.navigate(['/reports']);
+        } else {
+          this.submissionMessage = 'Tip submitted successfully!';
+          this.tipForm.reset({ date: new Date().toISOString().split('T')[0], startTime: '', endTime: '' });
+          this.selectedRoleIds = [];
+          this.selectedJobId = null;
+          this.loadRecentTips();
+          setTimeout(() => this.submissionMessage = null, 3000);
+        }
       },
       error: () => {
         this.isError = true;
-        this.submissionMessage = 'Submission failed. Please try again.';
+        this.submissionMessage = this.isEditMode ? 'Update failed. Please try again.' : 'Submission failed. Please try again.';
         setTimeout(() => this.submissionMessage = null, 3000);
       }
     });
   }
 
   onCancel(): void {
-    this.tipForm.reset({ date: new Date().toISOString().split('T')[0], startTime: '', endTime: '' });
+    if (this.isEditMode) {
+      this.router.navigate(['/reports']);
+    } else {
+      this.tipForm.reset({ date: new Date().toISOString().split('T')[0], startTime: '', endTime: '' });
+    }
   }
 }

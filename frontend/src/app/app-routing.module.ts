@@ -20,6 +20,7 @@ const routes: Routes = [
   // Protected routes
   { path: 'dashboard', component: DashboardComponent, canActivate: [AuthGuard] },
   { path: 'tip-entry-form', component: TipEntryFormComponent, canActivate: [AuthGuard] },
+  { path: 'edit/:id',      component: TipEntryFormComponent, canActivate: [AuthGuard] },
   { path: 'settings', component: SettingsComponent, canActivate: [AuthGuard] },
   { path: 'reports', component: ReportsComponent, canActivate: [AuthGuard] },
   { path: 'tip-out-roles', component: TipOutRoleManagerComponent, canActivate: [AuthGuard] },
