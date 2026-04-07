@@ -1,0 +1,115 @@
+<div class="job-manager">
+  <div class="job-manager__header">
+    <div>
+      <h2>Jobs</h2>
+      <p class="subtitle">Add the jobs you work at. You can tag each shift with a job when logging tips.</p>
+    </div>
+    <span class="job-count" [class.job-count--limit]="atLimit">{{ jobs.length }} / {{ MAX_JOBS }}</span>
+  </div>
+
+  <!-- Feedback messages -->
+  <div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
+  <div class="alert alert-danger"  *ngIf="errorMessage && !isFormVisible">{{ errorMessage }}</div>
+
+  <!-- Job list -->
+  <div class="job-list" *ngIf="jobs.length > 0">
+    <div class="job-card" *ngFor="let job of jobs">
+      <div class="job-card__info">
+        <span class="job-card__name">{{ job.name }}</span>
+        <span class="job-card__location" *ngIf="job.location">
+          <svg width="14" height="14" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+          {{ job.location }}
+        </span>
+        <span class="job-card__wage" *ngIf="job.hourlyWage">
+          ${{ job.hourlyWage | number:'1.2-2' }}/hr
+        </span>
+      </div>
+      <div class="job-card__actions">
+        <button class="btn-icon" (click)="editJob(job)" title="Edit">
+          <svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+        </button>
+        <button class="btn-icon btn-icon--danger" (click)="deleteJob(job)" title="Delete">
+          <svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="jobs.length === 0 && !isFormVisible">
+    <svg width="40" height="40" viewBox="0 0 24 24"><path fill="currentColor" d="M20 6h-2.18c.07-.44.18-.88.18-1.34C18 2.54 15.46 1 12.5 1S7 2.54 7 4.66c0 .46.11.9.18 1.34H5C3.9 6 3 6.9 3 8v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg>
+    <p>No jobs yet. Add your first job to start tagging shifts.</p>
+  </div>
+
+  <!-- Add / Edit form -->
+  <div class="job-form-card" *ngIf="isFormVisible">
+    <h3>{{ editingJobId ? 'Edit Job' : 'New Job' }}</h3>
+
+    <div class="alert alert-danger" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+    <form [formGroup]="form" (ngSubmit)="saveJob()">
+
+      <div class="form-group">
+        <label for="jobName">Job name <span class="required">*</span></label>
+        <input
+          id="jobName"
+          type="text"
+          class="form-control"
+          formControlName="name"
+          placeholder="e.g. The Rusty Anchor, Downtown Bar"
+          [class.is-invalid]="form.get('name')!.invalid && form.get('name')!.touched" />
+        <div class="invalid-feedback" *ngIf="form.get('name')!.errors?.['required']">
+          Job name is required.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="jobLocation">Location <span class="optional">(optional)</span></label>
+        <input
+          id="jobLocation"
+          type="text"
+          class="form-control"
+          formControlName="location"
+          placeholder="e.g. 123 Main St, Chicago" />
+      </div>
+
+      <div class="form-group">
+        <label for="hourlyWage">Hourly wage <span class="optional">(optional)</span></label>
+        <div class="wage-input-wrapper">
+          <span class="wage-prefix">$</span>
+          <input
+            id="hourlyWage"
+            type="number"
+            class="form-control"
+            formControlName="hourlyWage"
+            placeholder="e.g. 12.00"
+            min="0"
+            step="0.01"
+            [class.is-invalid]="form.get('hourlyWage')!.invalid && form.get('hourlyWage')!.touched" />
+          <span class="wage-suffix">/hr</span>
+        </div>
+        <div class="invalid-feedback" *ngIf="form.get('hourlyWage')!.errors?.['min']">
+          Wage cannot be negative.
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="form.invalid || isLoading">
+          {{ isLoading ? 'Saving…' : (editingJobId ? 'Update Job' : 'Add Job') }}
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="cancelForm()">Cancel</button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- Add button -->
+  <button
+    class="btn btn-outline-primary mt-3"
+    *ngIf="!isFormVisible"
+    [disabled]="atLimit"
+    (click)="showAddForm()">
+    + Add Job
+  </button>
+  <p class="limit-hint" *ngIf="atLimit && !isFormVisible">Maximum of {{ MAX_JOBS }} jobs reached.</p>
+
+</div>

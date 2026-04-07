@@ -9,7 +9,7 @@ import { ReportsComponent } from './components/reports/reports.component';
 import {AuthGuard} from "./guards/auth.guard";
 import { HomeComponent } from './components/home/home.component';
 import { TipOutRoleManagerComponent } from './components/tip-out-role-manager/tip-out-role-manager.component';
-
+import { JobManagerComponent } from './components/job-manager/job-manager.component';
 
 const routes: Routes = [
   // Public routes
@@ -22,7 +22,8 @@ const routes: Routes = [
   { path: 'tip-entry-form', component: TipEntryFormComponent, canActivate: [AuthGuard] },
   { path: 'settings', component: SettingsComponent, canActivate: [AuthGuard] },
   { path: 'reports', component: ReportsComponent, canActivate: [AuthGuard] },
-  { path: 'tip-out-roles', component: TipOutRoleManagerComponent, canActivate: [AuthGuard] }
+  { path: 'tip-out-roles', component: TipOutRoleManagerComponent, canActivate: [AuthGuard] },
+  { path: 'jobs', component: JobManagerComponent, canActivate: [AuthGuard] }
 ];
 
 @NgModule({
