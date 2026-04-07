@@ -4,6 +4,8 @@ import { QuickAddService } from '../../services/quick-add.service';
 import { TipService } from '../../services/tip.service';
 import { TipOutRoleService } from '../../services/tip-out-role.service';
 import { TipOutRole } from '../../models/tip-out-role.model';
+import { JobService } from '../../services/job.service';
+import { Job } from '../../models/job.model';
 
 @Component({
   selector: 'app-quick-add-modal',
@@ -20,6 +22,11 @@ export class QuickAddModalComponent implements OnInit {
   availableRoles: TipOutRole[] = [];
   selectedRoleIds: number[] = [];
 
+  // Phase 2 Sprint 2: job selection
+  jobs: Job[] = [];
+  selectedJobId: number | null = null;
+  private readonly LAST_JOB_KEY = 'lastUsedJobId';
+
   private readonly defaultStartTimes: Record<string, string> = {
     Morning: '08:00',
     Evening: '15:45',
@@ -30,7 +37,8 @@ export class QuickAddModalComponent implements OnInit {
     private fb: FormBuilder,
     public quickAdd: QuickAddService,
     private tipService: TipService,
-    private tipOutRoleService: TipOutRoleService
+    private tipOutRoleService: TipOutRoleService,
+    private jobService: JobService
   ) {
     this.form = this.fb.group({
       cashTips:    ['', [Validators.required, Validators.min(0)]],
@@ -49,7 +57,17 @@ export class QuickAddModalComponent implements OnInit {
     });
     this.tipOutRoleService.getRoles().subscribe({
       next: (roles) => this.availableRoles = roles,
-      error: () => {} // silently fail — roles are optional
+      error: () => {}
+    });
+    this.jobService.getJobs().subscribe({
+      next: (jobs) => {
+        this.jobs = jobs;
+        const lastId = localStorage.getItem(this.LAST_JOB_KEY);
+        if (lastId && jobs.find(j => j.id === +lastId)) {
+          this.selectedJobId = +lastId;
+        }
+      },
+      error: () => {}
     });
   }
 
@@ -114,7 +132,8 @@ export class QuickAddModalComponent implements OnInit {
     if (this.form.invalid || this.submitting) return;
     this.submitting = true;
     this.errorMsg = '';
-    const payload = { ...this.form.value, tipOutRoleIds: this.selectedRoleIds };
+    const payload = { ...this.form.value, tipOutRoleIds: this.selectedRoleIds, jobId: this.selectedJobId ?? undefined };
+    if (this.selectedJobId) localStorage.setItem(this.LAST_JOB_KEY, String(this.selectedJobId));
     this.tipService.addTip(payload).subscribe({
       next: () => {
         const shift = this.form.get('shiftType')?.value;
@@ -152,6 +171,7 @@ export class QuickAddModalComponent implements OnInit {
       startTime: '', endTime: '',
     });
     this.selectedRoleIds = [];
+    this.selectedJobId = null;
     this.success = false;
     this.errorMsg = '';
     this.submitting = false;

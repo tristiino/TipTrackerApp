@@ -3,6 +3,8 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TipService } from '../../services/tip.service';
 import { TipOutRoleService } from '../../services/tip-out-role.service';
 import { TipOutRole } from '../../models/tip-out-role.model';
+import { JobService } from '../../services/job.service';
+import { Job } from '../../models/job.model';
 
 @Component({
   selector: 'app-tip-entry-form',
@@ -20,10 +22,16 @@ export class TipEntryFormComponent implements OnInit {
   availableRoles: TipOutRole[] = [];
   selectedRoleIds: number[] = [];
 
+  // --- Phase 2 Sprint 2: Job fields ---
+  jobs: Job[] = [];
+  selectedJobId: number | null = null;
+  private readonly LAST_JOB_KEY = 'lastUsedJobId';
+
   constructor(
     private fb: FormBuilder,
     private tipService: TipService,
-    private tipOutRoleService: TipOutRoleService
+    private tipOutRoleService: TipOutRoleService,
+    private jobService: JobService
   ) {
     this.tipForm = this.fb.group({
       cashTips:    ['', [Validators.required, Validators.min(0)]],
@@ -114,6 +122,16 @@ export class TipEntryFormComponent implements OnInit {
       next: (roles) => this.availableRoles = roles,
       error: (err) => console.error('Failed to load tip-out roles', err)
     });
+    this.jobService.getJobs().subscribe({
+      next: (jobs) => {
+        this.jobs = jobs;
+        const lastId = localStorage.getItem(this.LAST_JOB_KEY);
+        if (lastId && jobs.find(j => j.id === +lastId)) {
+          this.selectedJobId = +lastId;
+        }
+      },
+      error: () => {}
+    });
   }
 
   loadRecentTips(): void {
@@ -145,10 +163,10 @@ export class TipEntryFormComponent implements OnInit {
       return;
     }
 
-    // Include selected tip-out role IDs in the payload (P2-002)
     const payload = {
       ...this.tipForm.value,
-      tipOutRoleIds: this.selectedRoleIds
+      tipOutRoleIds: this.selectedRoleIds,
+      jobId: this.selectedJobId ?? undefined
     };
 
     this.tipService.addTip(payload).subscribe({
@@ -161,8 +179,10 @@ export class TipEntryFormComponent implements OnInit {
         if (shift && start) {
           localStorage.setItem(`shiftStart_${shift}`, start);
         }
+        if (this.selectedJobId) localStorage.setItem(this.LAST_JOB_KEY, String(this.selectedJobId));
         this.tipForm.reset({ date: new Date().toISOString().split('T')[0], startTime: '', endTime: '' });
         this.selectedRoleIds = [];
+        this.selectedJobId = null;
         this.loadRecentTips();
         setTimeout(() => this.submissionMessage = null, 3000);
       },

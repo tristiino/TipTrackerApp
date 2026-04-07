@@ -52,6 +52,15 @@
         </div>
       </div>
 
+      <!-- Job selector (P2-008) -->
+      <div class="modal-field" *ngIf="jobs.length > 0">
+        <label class="field-label">Job <span class="optional">(optional)</span></label>
+        <select class="modal-select" [(ngModel)]="selectedJobId" [ngModelOptions]="{standalone: true}">
+          <option [ngValue]="null">— Unassigned —</option>
+          <option *ngFor="let job of jobs" [ngValue]="job.id">{{ job.name }}<ng-container *ngIf="job.location"> · {{ job.location }}</ng-container></option>
+        </select>
+      </div>
+
       <!-- Shift times (optional) -->
       <div class="modal-field">
         <label class="field-label">Shift Times <span class="optional">(optional)</span></label>
