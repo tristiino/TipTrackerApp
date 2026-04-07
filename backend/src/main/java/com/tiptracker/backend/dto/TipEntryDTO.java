@@ -45,4 +45,10 @@ public class TipEntryDTO {
 
     /** Gross tips minus total tip-out. What the server takes home before tax. */
     private double netTips;
+
+    // --- Phase 2 Sprint 2: Multi-Job fields ---
+
+    /** The job this shift was logged against. Null if unassigned. */
+    private Long jobId;
+    private String jobName;
 }

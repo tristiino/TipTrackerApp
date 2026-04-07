@@ -71,6 +71,13 @@ public class TipEntry {
     private String notes;
 
     /**
+     * The job profile this shift belongs to. Null for unassigned shifts (pre-Sprint 2 entries).
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "job_id", nullable = true)
+    private Job job;
+
+    /**
      * The User who this tip entry belongs to.
      * This represents the "many" side of a one-to-many relationship.
      * JsonBackReference is used to prevent infinite loops during JSON serialization.

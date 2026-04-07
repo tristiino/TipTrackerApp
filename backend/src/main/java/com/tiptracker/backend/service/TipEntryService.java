@@ -1,9 +1,11 @@
 package com.tiptracker.backend.service;
 
 import com.tiptracker.backend.dto.*;
+import com.tiptracker.backend.model.Job;
 import com.tiptracker.backend.model.TipEntry;
 import com.tiptracker.backend.model.TipOutRecord;
 import com.tiptracker.backend.model.User;
+import com.tiptracker.backend.repository.JobRepository;
 import com.tiptracker.backend.repository.TipEntryRepository;
 import com.tiptracker.backend.repository.TipOutRecordRepository;
 import com.tiptracker.backend.repository.UserRepository;
@@ -36,6 +38,7 @@ public class TipEntryService {
     private final TipEntryRepository tipEntryRepository;
     private final TipOutRecordRepository tipOutRecordRepository;
     private final UserRepository userRepository;
+    private final JobRepository jobRepository;
     private final SettingsService settingsService;
     private final TipOutService tipOutService;
 
@@ -274,6 +277,15 @@ public class TipEntryService {
             long minutes = java.time.Duration.between(req.getStartTime(), req.getEndTime()).toMinutes();
             tip.setHoursWorked(minutes / 60.0);
         }
+
+        // Link to a job profile if provided; clear it if null (unassign)
+        if (req.getJobId() != null) {
+            Job job = jobRepository.findById(req.getJobId())
+                    .orElseThrow(() -> new IllegalArgumentException("Job not found: " + req.getJobId()));
+            tip.setJob(job);
+        } else {
+            tip.setJob(null);
+        }
     }
 
     /**
@@ -298,6 +310,10 @@ public class TipEntryService {
         dto.setTotalTipOut(totalTipOut);
         dto.setNetTips(tip.getAmount() - totalTipOut);
         dto.setTipShare(totalTipOut);   // backward compat alias
+        if (tip.getJob() != null) {
+            dto.setJobId(tip.getJob().getId());
+            dto.setJobName(tip.getJob().getName());
+        }
         return dto;
     }
 

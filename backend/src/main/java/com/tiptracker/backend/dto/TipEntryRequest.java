@@ -38,4 +38,7 @@ public class TipEntryRequest {
      * Empty = no tip-outs applied to this shift.
      */
     private List<Long> tipOutRoleIds = new ArrayList<>();
+
+    /** Optional job profile this shift belongs to. Null = unassigned. */
+    private Long jobId;
 }
