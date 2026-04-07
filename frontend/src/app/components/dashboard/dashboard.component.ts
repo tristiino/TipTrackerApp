@@ -4,6 +4,8 @@ import { BaseChartDirective } from 'ng2-charts';
 import { forkJoin } from 'rxjs';
 import { TipService } from '../../services/tip.service';
 import { PayPeriodService, PayPeriod } from '../../services/pay-period.service';
+import { JobService } from '../../services/job.service';
+import { Job } from '../../models/job.model';
 
 interface Metric {
   key: string;
@@ -39,6 +41,9 @@ export class DashboardComponent implements OnInit {
   payPeriod: PayPeriod | null = null;
   selectedPeriodOffset = 0;
   availablePeriods: { label: string; offset: number; period: PayPeriod }[] = [];
+
+  jobs: Job[] = [];
+  selectedJobId: number | null = null;
 
   periodTotal = 0;
   activeDays  = 0;
@@ -170,9 +175,11 @@ export class DashboardComponent implements OnInit {
   constructor(
     private tipService: TipService,
     private payPeriodService: PayPeriodService,
+    private jobService: JobService,
   ) {}
 
   ngOnInit(): void {
+    this.jobService.getJobs().subscribe(jobs => { this.jobs = jobs; });
     this.buildAvailablePeriods();
     this.payPeriod = this.availablePeriods.find(p => p.offset === 0)?.period ?? null;
     if (this.payPeriod) {
@@ -218,13 +225,23 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  selectJob(jobId: number | null): void {
+    this.selectedJobId = jobId;
+    if (this.groupBy === 'payperiod') {
+      this.loadPayPeriodData();
+    } else {
+      this.loadData(this.selectedDays);
+    }
+  }
+
   loadData(days: number): void {
     this.selectedDays = days;
     this.isLoading = true;
+    const jobId = this.selectedJobId ?? undefined;
 
     forkJoin({
-      earnings: this.tipService.getDailyEarnings(days, this.groupBy),
-      summary:  this.tipService.getDashboardSummary(days),
+      earnings: this.tipService.getDailyEarnings(days, this.groupBy, jobId),
+      summary:  this.tipService.getDashboardSummary(days, jobId),
     }).subscribe({
       next: ({ earnings, summary }) => this.applyData(earnings, summary),
       error: (err) => {
@@ -238,10 +255,11 @@ export class DashboardComponent implements OnInit {
     if (!this.payPeriod) return;
     this.isLoading = true;
     const { startDate, endDate } = this.payPeriod;
+    const jobId = this.selectedJobId ?? undefined;
 
     forkJoin({
-      earnings: this.tipService.getDailyEarningsByDateRange(startDate, endDate, 'day'),
-      summary:  this.tipService.getDashboardSummaryByDateRange(startDate, endDate),
+      earnings: this.tipService.getDailyEarningsByDateRange(startDate, endDate, 'day', jobId),
+      summary:  this.tipService.getDashboardSummaryByDateRange(startDate, endDate, jobId),
     }).subscribe({
       next: ({ earnings, summary }) => this.applyData(earnings, summary),
       error: (err) => {

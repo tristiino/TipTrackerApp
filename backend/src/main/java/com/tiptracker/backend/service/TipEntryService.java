@@ -144,18 +144,22 @@ public class TipEntryService {
      * and computes netEarnings using real tip-out records instead of a flat rate.
      */
     public List<DailyEarningsDTO> getDailyEarnings(String userEmail, Integer days, String groupBy,
-                                                    LocalDate startDate, LocalDate endDate) {
+                                                    LocalDate startDate, LocalDate endDate, Long jobId) {
         User user = resolveUser(userEmail);
         double taxRate = getUserTaxRate(userEmail);
 
         LocalDate end   = endDate   != null ? endDate   : LocalDate.now();
         LocalDate start = startDate != null ? startDate : end.minusDays((days != null ? days : 30) - 1);
 
-        // Fetch per-day tip totals from DB
-        List<Object[]> rows = tipEntryRepository.findDailyAggregates(user.getId(), start, end);
+        // Fetch per-day tip totals from DB (optionally filtered by job)
+        List<Object[]> rows = jobId != null
+            ? tipEntryRepository.findDailyAggregatesForJob(user.getId(), start, end, jobId)
+            : tipEntryRepository.findDailyAggregates(user.getId(), start, end);
 
-        // Fetch per-day tip-out totals from DB
-        List<Object[]> tipOutRows = tipOutRecordRepository.findDailyTipOutAggregates(user.getId(), start, end);
+        // Fetch per-day tip-out totals from DB (optionally filtered by job)
+        List<Object[]> tipOutRows = jobId != null
+            ? tipOutRecordRepository.findDailyTipOutAggregatesForJob(user.getId(), start, end, jobId)
+            : tipOutRecordRepository.findDailyTipOutAggregates(user.getId(), start, end);
         Map<LocalDate, Double> tipOutByDate = new LinkedHashMap<>();
         for (Object[] row : tipOutRows) {
             tipOutByDate.put((LocalDate) row[0], row[1] != null ? ((Number) row[1]).doubleValue() : 0.0);
@@ -193,18 +197,27 @@ public class TipEntryService {
     // -------------------------------------------------------------------------
 
     public DashboardSummaryDTO getDashboardSummary(String userEmail, Integer days,
-                                                    LocalDate startDate, LocalDate endDate) {
+                                                    LocalDate startDate, LocalDate endDate, Long jobId) {
         User user = resolveUser(userEmail);
 
         LocalDate end   = endDate   != null ? endDate   : LocalDate.now();
         LocalDate start = startDate != null ? startDate : end.minusDays((days != null ? days : 30) - 1);
 
-        List<TipEntry> tips = tipEntryRepository.findByUserIdAndDateBetween(user.getId(), start, end);
+        List<TipEntry> tips = jobId != null
+                ? tipEntryRepository.findByUserIdAndDateBetweenAndJobId(user.getId(), start, end, jobId)
+                : tipEntryRepository.findByUserIdAndDateBetween(user.getId(), start, end);
         double taxRate    = getUserTaxRate(userEmail);
         double grossTips  = tips.stream().mapToDouble(TipEntry::getAmount).sum();
 
         // Real tip-out total for the period (replaces hardcoded 10%)
-        double totalTipOut = tipOutRecordRepository.sumFinalAmountByUserAndDateRange(user.getId(), start, end);
+        double totalTipOut;
+        if (jobId != null) {
+            List<Long> entryIds = tips.stream().map(TipEntry::getId).collect(Collectors.toList());
+            totalTipOut = entryIds.isEmpty() ? 0.0
+                    : tipOutRecordRepository.sumFinalAmountForEntries(entryIds);
+        } else {
+            totalTipOut = tipOutRecordRepository.sumFinalAmountByUserAndDateRange(user.getId(), start, end);
+        }
         double afterTipOut = grossTips - totalTipOut;
         double netEarnings = afterTipOut - (afterTipOut * taxRate);
 

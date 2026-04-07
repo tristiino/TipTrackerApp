@@ -49,16 +49,21 @@ export class TipService {
    * Fetches daily aggregated tip earnings for the last N days.
    * @param days Number of days to look back (default 30).
    */
-  getDailyEarnings(days: number = 30, groupBy: string = 'day'): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/earnings/daily?days=${days}&groupBy=${groupBy}`);
+  getDailyEarnings(days: number = 30, groupBy: string = 'day', jobId?: number): Observable<any[]> {
+    let url = `${this.apiUrl}/earnings/daily?days=${days}&groupBy=${groupBy}`;
+    if (jobId != null) url += `&jobId=${jobId}`;
+    return this.http.get<any[]>(url);
   }
 
   /**
    * Fetches aggregated summary stats for the dashboard (totals, shifts, hourly wage).
-   * @param days Number of days to look back (default 30).
+   * @param days  Number of days to look back (default 30).
+   * @param jobId Optional job ID to filter by.
    */
-  getDashboardSummary(days: number = 30): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/summary?days=${days}`);
+  getDashboardSummary(days: number = 30, jobId?: number): Observable<any> {
+    let url = `${this.apiUrl}/summary?days=${days}`;
+    if (jobId != null) url += `&jobId=${jobId}`;
+    return this.http.get<any>(url);
   }
 
   /**
@@ -66,17 +71,23 @@ export class TipService {
    * @param startDate ISO date string (YYYY-MM-DD).
    * @param endDate   ISO date string (YYYY-MM-DD).
    * @param groupBy   Aggregation period: 'day', 'week', or 'month'.
+   * @param jobId     Optional job ID to filter by.
    */
-  getDailyEarningsByDateRange(startDate: string, endDate: string, groupBy: string = 'day'): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/earnings/daily?startDate=${startDate}&endDate=${endDate}&groupBy=${groupBy}`);
+  getDailyEarningsByDateRange(startDate: string, endDate: string, groupBy: string = 'day', jobId?: number): Observable<any[]> {
+    let url = `${this.apiUrl}/earnings/daily?startDate=${startDate}&endDate=${endDate}&groupBy=${groupBy}`;
+    if (jobId != null) url += `&jobId=${jobId}`;
+    return this.http.get<any[]>(url);
   }
 
   /**
    * Fetches dashboard summary stats for an explicit date range.
    * @param startDate ISO date string (YYYY-MM-DD).
    * @param endDate   ISO date string (YYYY-MM-DD).
+   * @param jobId     Optional job ID to filter by.
    */
-  getDashboardSummaryByDateRange(startDate: string, endDate: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/summary?startDate=${startDate}&endDate=${endDate}`);
+  getDashboardSummaryByDateRange(startDate: string, endDate: string, jobId?: number): Observable<any> {
+    let url = `${this.apiUrl}/summary?startDate=${startDate}&endDate=${endDate}`;
+    if (jobId != null) url += `&jobId=${jobId}`;
+    return this.http.get<any>(url);
   }
 }

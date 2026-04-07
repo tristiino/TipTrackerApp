@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Collection;
 
 public interface TipOutRecordRepository extends JpaRepository<TipOutRecord, Long> {
 
@@ -52,4 +53,27 @@ public interface TipOutRecordRepository extends JpaRepository<TipOutRecord, Long
             @Param("userId") Long userId,
             @Param("start") LocalDate start,
             @Param("end") LocalDate end);
+
+    /**
+     * Sums finalAmounts for a specific set of entry IDs.
+     * Used when filtering dashboard summary by job — avoids re-querying by user+date.
+     */
+    @Query("SELECT COALESCE(SUM(r.finalAmount), 0) FROM TipOutRecord r WHERE r.tipEntry.id IN :entryIds")
+    double sumFinalAmountForEntries(@Param("entryIds") Collection<Long> entryIds);
+
+    /**
+     * Daily tip-out aggregates filtered to a specific job.
+     */
+    @Query("SELECT r.tipEntry.date, COALESCE(SUM(r.finalAmount), 0) " +
+           "FROM TipOutRecord r " +
+           "WHERE r.tipEntry.user.id = :userId " +
+           "AND r.tipEntry.date BETWEEN :start AND :end " +
+           "AND r.tipEntry.job.id = :jobId " +
+           "GROUP BY r.tipEntry.date " +
+           "ORDER BY r.tipEntry.date ASC")
+    List<Object[]> findDailyTipOutAggregatesForJob(
+            @Param("userId") Long userId,
+            @Param("start") LocalDate start,
+            @Param("end") LocalDate end,
+            @Param("jobId") Long jobId);
 }

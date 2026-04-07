@@ -70,8 +70,9 @@ public class TipEntryController {
             @RequestParam(required = false) Integer days,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) Long jobId,
             Principal principal) {
-        return ResponseEntity.ok(service.getDashboardSummary(principal.getName(), days, startDate, endDate));
+        return ResponseEntity.ok(service.getDashboardSummary(principal.getName(), days, startDate, endDate, jobId));
     }
 
     /**
@@ -91,8 +92,9 @@ public class TipEntryController {
             @RequestParam(defaultValue = "day") String groupBy,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) Long jobId,
             Principal principal) {
-        return ResponseEntity.ok(service.getDailyEarnings(principal.getName(), days, groupBy, startDate, endDate));
+        return ResponseEntity.ok(service.getDailyEarnings(principal.getName(), days, groupBy, startDate, endDate, jobId));
     }
 
     /**

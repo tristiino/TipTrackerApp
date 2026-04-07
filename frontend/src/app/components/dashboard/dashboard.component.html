@@ -83,6 +83,17 @@
       </button>
     </div>
 
+    <!-- Job filter (only shown when the user has multiple jobs) -->
+    <div class="job-filter" *ngIf="jobs.length > 1">
+      <select
+        [ngModel]="selectedJobId"
+        [ngModelOptions]="{standalone: true}"
+        (ngModelChange)="selectJob($event === 'null' ? null : +$event)">
+        <option [value]="null">All Jobs</option>
+        <option *ngFor="let j of jobs" [value]="j.id">{{ j.name }}</option>
+      </select>
+    </div>
+
     <!-- Period selector (pay period mode only) -->
     <div class="period-tabs" *ngIf="groupBy === 'payperiod' && availablePeriods.length > 1">
       <button

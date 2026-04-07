@@ -325,6 +325,33 @@
   }
 }
 
+// --- Job filter dropdown ---
+.job-filter {
+  margin-bottom: $space-4;
+
+  select {
+    padding: $space-1 $space-3;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+    color: #f1f5f9;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: $radius-sm;
+    cursor: pointer;
+    outline: none;
+    min-height: 32px;
+
+    option {
+      background-color: #1e293b;
+      color: #f1f5f9;
+    }
+
+    &:focus {
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+  }
+}
+
 // --- Chart area ---
 .chart-wrapper {
   position: relative;
