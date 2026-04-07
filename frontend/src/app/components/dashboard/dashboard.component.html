@@ -56,20 +56,32 @@
   <!-- Chart card -->
   <div class="chart-card">
 
-    <!-- Header: title + metric toggles -->
+    <!-- Header: title + job filter (top-right) + metric toggles -->
     <div class="chart-header">
       <div class="chart-title-group">
         <h2>Earnings</h2>
         <p class="chart-subtitle">{{ periodLabel }}</p>
       </div>
-      <div class="metric-toggle">
-        <button
-          *ngFor="let m of metrics"
-          [class.active]="activeMetric === m.key"
-          [style.--metric-color]="m.color"
-          (click)="setMetric(m.key)">
-          {{ m.label }}
-        </button>
+      <div class="chart-header-right">
+        <!-- Job filter pill (only shown when user has multiple jobs) -->
+        <div class="job-filter" *ngIf="jobs.length > 1">
+          <select
+            [ngModel]="selectedJobId"
+            [ngModelOptions]="{standalone: true}"
+            (ngModelChange)="selectJob($event === 'null' ? null : +$event)">
+            <option [value]="null">All Jobs</option>
+            <option *ngFor="let j of jobs" [value]="j.id">{{ j.name }}</option>
+          </select>
+        </div>
+        <div class="metric-toggle">
+          <button
+            *ngFor="let m of metrics"
+            [class.active]="activeMetric === m.key"
+            [style.--metric-color]="m.color"
+            (click)="setMetric(m.key)">
+            {{ m.label }}
+          </button>
+        </div>
       </div>
     </div>
 
@@ -80,27 +92,6 @@
         [class.active]="groupBy === g.key"
         (click)="setGroupBy(g.key)">
         {{ g.label }}
-      </button>
-    </div>
-
-    <!-- Job filter (only shown when the user has multiple jobs) -->
-    <div class="job-filter" *ngIf="jobs.length > 1">
-      <select
-        [ngModel]="selectedJobId"
-        [ngModelOptions]="{standalone: true}"
-        (ngModelChange)="selectJob($event === 'null' ? null : +$event)">
-        <option [value]="null">All Jobs</option>
-        <option *ngFor="let j of jobs" [value]="j.id">{{ j.name }}</option>
-      </select>
-    </div>
-
-    <!-- Period selector (pay period mode only) -->
-    <div class="period-tabs" *ngIf="groupBy === 'payperiod' && availablePeriods.length > 1">
-      <button
-        *ngFor="let p of availablePeriods"
-        [class.active]="selectedPeriodOffset === p.offset"
-        (click)="selectPeriod(p.offset)">
-        {{ p.label }}
       </button>
     </div>
 
@@ -132,13 +123,21 @@
       </div>
     </div>
 
-    <!-- Time range tabs (hidden in pay period mode) -->
+    <!-- Period selector / time range tabs — same position below stats for both modes -->
     <div class="time-range-tabs" *ngIf="groupBy !== 'payperiod'">
       <button
         *ngFor="let r of timeRanges"
         [class.active]="selectedDays === r.days"
         (click)="loadData(r.days)">
         {{ r.label }}
+      </button>
+    </div>
+    <div class="time-range-tabs" *ngIf="groupBy === 'payperiod' && availablePeriods.length > 1">
+      <button
+        *ngFor="let p of availablePeriods"
+        [class.active]="selectedPeriodOffset === p.offset"
+        (click)="selectPeriod(p.offset)">
+        {{ p.label }}
       </button>
     </div>
 

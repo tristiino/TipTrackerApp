@@ -135,6 +135,14 @@
   margin: 0;
 }
 
+// --- Header right side (job filter + metric toggles) ---
+.chart-header-right {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  flex-wrap: wrap;
+}
+
 // --- Metric toggle (top right) ---
 .metric-toggle {
   display: flex;
@@ -325,10 +333,8 @@
   }
 }
 
-// --- Job filter dropdown ---
+// --- Job filter dropdown (inline in header) ---
 .job-filter {
-  margin-bottom: $space-4;
-
   select {
     padding: $space-1 $space-3;
     font-size: $font-size-xs;
@@ -336,7 +342,7 @@
     color: #f1f5f9;
     background-color: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: $radius-sm;
+    border-radius: $radius-full;
     cursor: pointer;
     outline: none;
     min-height: 32px;
