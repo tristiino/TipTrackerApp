@@ -37,6 +37,8 @@ export class DashboardComponent implements OnInit {
   isLoading = true;
 
   payPeriod: PayPeriod | null = null;
+  selectedPeriodOffset = 0;
+  availablePeriods: { label: string; offset: number; period: PayPeriod }[] = [];
 
   periodTotal = 0;
   activeDays  = 0;
@@ -171,7 +173,8 @@ export class DashboardComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.payPeriod = this.payPeriodService.getCurrentPayPeriod();
+    this.buildAvailablePeriods();
+    this.payPeriod = this.availablePeriods.find(p => p.offset === 0)?.period ?? null;
     if (this.payPeriod) {
       this.loadPayPeriodData();
     } else {
@@ -182,7 +185,9 @@ export class DashboardComponent implements OnInit {
   setGroupBy(key: GroupBy): void {
     this.groupBy = key;
     if (key === 'payperiod') {
-      this.payPeriod = this.payPeriodService.getCurrentPayPeriod();
+      this.buildAvailablePeriods();
+      this.selectedPeriodOffset = 0;
+      this.payPeriod = this.availablePeriods.find(p => p.offset === 0)?.period ?? null;
       if (this.payPeriod) {
         this.loadPayPeriodData();
       } else {
@@ -190,6 +195,26 @@ export class DashboardComponent implements OnInit {
       }
     } else {
       this.loadData(this.timeRangeMap[key][0].days);
+    }
+  }
+
+  selectPeriod(offset: number): void {
+    this.selectedPeriodOffset = offset;
+    const found = this.availablePeriods.find(p => p.offset === offset);
+    if (found) {
+      this.payPeriod = found.period;
+      this.loadPayPeriodData();
+    }
+  }
+
+  private buildAvailablePeriods(): void {
+    const labels = ['Current', 'Previous', '2 Periods Ago'];
+    this.availablePeriods = [];
+    for (let i = 0; i >= -2; i--) {
+      const period = this.payPeriodService.getPayPeriodByOffset(i);
+      if (period) {
+        this.availablePeriods.push({ label: labels[-i], offset: i, period });
+      }
     }
   }
 

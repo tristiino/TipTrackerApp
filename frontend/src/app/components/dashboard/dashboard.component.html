@@ -83,6 +83,16 @@
       </button>
     </div>
 
+    <!-- Period selector (pay period mode only) -->
+    <div class="period-tabs" *ngIf="groupBy === 'payperiod' && availablePeriods.length > 1">
+      <button
+        *ngFor="let p of availablePeriods"
+        [class.active]="selectedPeriodOffset === p.offset"
+        (click)="selectPeriod(p.offset)">
+        {{ p.label }}
+      </button>
+    </div>
+
     <!-- Pay period not configured notice -->
     <div *ngIf="groupBy === 'payperiod' && !payPeriod && !isLoading" class="no-pay-period">
       <svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/></svg>

@@ -293,6 +293,38 @@
   }
 }
 
+// --- Period selector tabs (pay period mode) ---
+.period-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-1;
+  margin-bottom: $space-4;
+
+  button {
+    padding: $space-1 $space-3;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+    color: #64748b;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: $radius-sm;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover {
+      color: #cbd5e1;
+      background-color: rgba(255, 255, 255, 0.06);
+    }
+
+    &.active {
+      color: #f1f5f9;
+      background-color: rgba(255, 255, 255, 0.1);
+      font-weight: $font-weight-semi;
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+  }
+}
+
 // --- Chart area ---
 .chart-wrapper {
   position: relative;
