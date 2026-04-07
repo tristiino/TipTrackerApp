@@ -71,6 +71,10 @@ export class QuickAddModalComponent implements OnInit {
     });
   }
 
+  get filteredRoles(): TipOutRole[] {
+    return this.availableRoles.filter(r => !r.jobId || r.jobId === this.selectedJobId);
+  }
+
   toggleRole(roleId: number): void {
     const idx = this.selectedRoleIds.indexOf(roleId);
     if (idx === -1) this.selectedRoleIds.push(roleId);

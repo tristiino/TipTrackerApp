@@ -77,11 +77,11 @@
         <div class="hours-badge" *ngIf="hoursWorked !== null">{{ hoursWorked }}h worked</div>
       </div>
 
-      <!-- Tip-Out Roles -->
-      <div class="modal-field" *ngIf="availableRoles.length > 0">
+      <!-- Tip-Out Roles (filtered by job — P2-011) -->
+      <div class="modal-field" *ngIf="filteredRoles.length > 0">
         <label class="field-label">Tip-Outs</label>
         <div class="tipout-role-list">
-          <label class="tipout-role-option" *ngFor="let role of availableRoles">
+          <label class="tipout-role-option" *ngFor="let role of filteredRoles">
             <input type="checkbox" [checked]="isRoleSelected(role.id!)" (change)="toggleRole(role.id!)" />
             <span class="role-label">{{ formatRoleLabel(role) }}</span>
             <span class="role-preview" *ngIf="isRoleSelected(role.id!) && totalTips > 0">

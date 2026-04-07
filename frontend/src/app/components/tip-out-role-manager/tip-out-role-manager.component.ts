@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { TipOutRole, TipOutSource, TipOutType } from '../../models/tip-out-role.model';
 import { TipOutRoleService } from '../../services/tip-out-role.service';
+import { JobService } from '../../services/job.service';
+import { Job } from '../../models/job.model';
 
 /**
  * Manages the user's tip-out role templates (P2-001).
@@ -21,6 +23,7 @@ import { TipOutRoleService } from '../../services/tip-out-role.service';
 export class TipOutRoleManagerComponent implements OnInit {
 
   roles: TipOutRole[] = [];
+  jobs: Job[] = [];
   isFormVisible = false;
   editingRoleId: number | null = null;
   isLoading = false;
@@ -31,18 +34,21 @@ export class TipOutRoleManagerComponent implements OnInit {
 
   constructor(
     private tipOutRoleService: TipOutRoleService,
+    private jobService: JobService,
     private fb: FormBuilder
   ) {
     this.form = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(50)]],
       splitType: ['PERCENTAGE', Validators.required],
       amount: [null, [Validators.required, Validators.min(0.01)]],
-      source: ['BOTH', Validators.required]
+      source: ['BOTH', Validators.required],
+      jobId: [null]
     });
   }
 
   ngOnInit(): void {
     this.loadRoles();
+    this.jobService.getJobs().subscribe({ next: (jobs) => this.jobs = jobs, error: () => {} });
   }
 
   loadRoles(): void {
@@ -66,10 +72,12 @@ export class TipOutRoleManagerComponent implements OnInit {
     return this.splitType === 'PERCENTAGE';
   }
 
-  /** Sum of all saved PERCENTAGE roles (excluding the one being edited, if any). */
+  /** Sum of all saved PERCENTAGE roles in the same job scope (excluding the one being edited, if any). */
   get existingPercentageTotal(): number {
+    const currentJobId = this.form.get('jobId')!.value ?? null;
     return this.roles
       .filter(r => r.splitType === 'PERCENTAGE' && r.id !== this.editingRoleId)
+      .filter(r => (r.jobId ?? null) === (currentJobId === '' ? null : currentJobId))
       .reduce((sum, r) => sum + r.amount, 0);
   }
 
@@ -89,7 +97,7 @@ export class TipOutRoleManagerComponent implements OnInit {
 
   showAddForm(): void {
     this.editingRoleId = null;
-    this.form.reset({ splitType: 'PERCENTAGE', source: 'BOTH' });
+    this.form.reset({ splitType: 'PERCENTAGE', source: 'BOTH', jobId: null });
     this.isFormVisible = true;
     this.errorMessage = '';
   }
@@ -100,7 +108,8 @@ export class TipOutRoleManagerComponent implements OnInit {
       name: role.name,
       splitType: role.splitType,
       amount: role.amount,
-      source: role.source ?? 'BOTH'
+      source: role.source ?? 'BOTH',
+      jobId: role.jobId ?? null
     });
     this.isFormVisible = true;
     this.errorMessage = '';
@@ -112,11 +121,13 @@ export class TipOutRoleManagerComponent implements OnInit {
     this.isLoading = true;
     this.errorMessage = '';
 
+    const rawJobId = this.form.value.jobId;
     const payload: Omit<TipOutRole, 'id'> = {
       name: this.form.value.name.trim(),
       splitType: this.form.value.splitType,
       amount: this.form.value.amount,
-      source: this.form.value.source ?? 'BOTH'
+      source: this.form.value.source ?? 'BOTH',
+      jobId: rawJobId ? +rawJobId : undefined
     };
 
     const request$ = this.editingRoleId

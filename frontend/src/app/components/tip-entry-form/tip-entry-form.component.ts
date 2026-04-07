@@ -97,6 +97,15 @@ export class TipEntryFormComponent implements OnInit {
     return this.totalTips - this.estimatedTipOut;
   }
 
+  /**
+   * Returns only roles relevant to the selected job:
+   * - Global roles (no jobId) are always shown
+   * - Job-specific roles are shown only when their job matches selectedJobId
+   */
+  get filteredRoles(): TipOutRole[] {
+    return this.availableRoles.filter(r => !r.jobId || r.jobId === this.selectedJobId);
+  }
+
   toggleRole(roleId: number): void {
     const idx = this.selectedRoleIds.indexOf(roleId);
     if (idx === -1) {

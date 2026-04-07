@@ -20,6 +20,8 @@
         <span class="role-card__source">
           {{ role.source === 'CASH' ? 'cash' : role.source === 'CREDIT' ? 'credit' : 'total' }}
         </span>
+        <span class="role-card__job" *ngIf="role.jobName">· {{ role.jobName }}</span>
+        <span class="role-card__job role-card__job--global" *ngIf="!role.jobName">· All jobs</span>
       </div>
       <div class="role-card__actions">
         <button class="btn-icon" (click)="editRole(role)" title="Edit">
@@ -119,6 +121,15 @@
         <div class="invalid-feedback" *ngIf="form.get('amount')!.errors?.['min']">
           Amount must be greater than 0.
         </div>
+      </div>
+
+      <!-- Job scope selector (P2-011) — only shown when user has jobs -->
+      <div class="form-group" *ngIf="jobs.length > 0">
+        <label>Applies to</label>
+        <select class="form-control" formControlName="jobId">
+          <option [ngValue]="null">All jobs (global)</option>
+          <option *ngFor="let j of jobs" [ngValue]="j.id">{{ j.name }}</option>
+        </select>
       </div>
 
       <!-- Live percentage preview (P2-005 client-side guard) -->

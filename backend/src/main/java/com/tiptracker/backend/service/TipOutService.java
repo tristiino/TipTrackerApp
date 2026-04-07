@@ -3,6 +3,7 @@ package com.tiptracker.backend.service;
 import com.tiptracker.backend.dto.TipOutRecordDTO;
 import com.tiptracker.backend.dto.TipOutRoleDTO;
 import com.tiptracker.backend.model.*;
+import com.tiptracker.backend.repository.JobRepository;
 import com.tiptracker.backend.repository.TipOutRecordRepository;
 import com.tiptracker.backend.repository.TipOutRoleRepository;
 import com.tiptracker.backend.repository.UserRepository;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Owns all business logic for tip-out roles and per-shift tip-out records.
@@ -36,6 +38,7 @@ public class TipOutService {
     private final TipOutRoleRepository tipOutRoleRepository;
     private final TipOutRecordRepository tipOutRecordRepository;
     private final UserRepository userRepository;
+    private final JobRepository jobRepository;
 
     // -------------------------------------------------------------------------
     // Role CRUD (P2-001)
@@ -75,6 +78,10 @@ public class TipOutService {
         role.setSplitType(dto.getSplitType());
         role.setAmount(dto.getAmount());
         role.setSource(dto.getSource() != null ? dto.getSource() : TipOutSource.BOTH);
+        if (dto.getJobId() != null) {
+            role.setJob(jobRepository.findByIdAndUserUsername(dto.getJobId(), user.getUsername())
+                    .orElseThrow(() -> new IllegalArgumentException("Job not found: " + dto.getJobId())));
+        }
 
         return toRoleDTO(tipOutRoleRepository.save(role));
     }
@@ -94,6 +101,12 @@ public class TipOutService {
         role.setSplitType(dto.getSplitType());
         role.setAmount(dto.getAmount());
         role.setSource(dto.getSource() != null ? dto.getSource() : TipOutSource.BOTH);
+        if (dto.getJobId() != null) {
+            role.setJob(jobRepository.findByIdAndUserUsername(dto.getJobId(), role.getUser().getUsername())
+                    .orElseThrow(() -> new IllegalArgumentException("Job not found: " + dto.getJobId())));
+        } else {
+            role.setJob(null);
+        }
 
         return toRoleDTO(tipOutRoleRepository.save(role));
     }
@@ -330,9 +343,11 @@ public class TipOutService {
         if (newDto.getSplitType() != TipOutType.PERCENTAGE) {
             return; // fixed-amount roles don't affect the percentage total
         }
+        // Scope the check to the same job context (global vs. specific job)
         double existingSum = tipOutRoleRepository.findByUserOrderByNameAsc(user).stream()
                 .filter(r -> excludeRoleId == null || !r.getId().equals(excludeRoleId))
                 .filter(r -> r.getSplitType() == TipOutType.PERCENTAGE)
+                .filter(r -> Objects.equals(r.getJob() != null ? r.getJob().getId() : null, newDto.getJobId()))
                 .mapToDouble(TipOutRole::getAmount)
                 .sum();
 
@@ -348,7 +363,9 @@ public class TipOutService {
 
     private TipOutRoleDTO toRoleDTO(TipOutRole role) {
         TipOutSource src = role.getSource() != null ? role.getSource() : TipOutSource.BOTH;
-        return new TipOutRoleDTO(role.getId(), role.getName(), role.getSplitType(), role.getAmount(), src);
+        Long jobId     = role.getJob() != null ? role.getJob().getId()   : null;
+        String jobName = role.getJob() != null ? role.getJob().getName() : null;
+        return new TipOutRoleDTO(role.getId(), role.getName(), role.getSplitType(), role.getAmount(), src, jobId, jobName);
     }
 
     private TipOutRecordDTO toRecordDTO(TipOutRecord record) {

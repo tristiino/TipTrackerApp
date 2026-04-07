@@ -55,4 +55,13 @@ public class TipOutRole {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    /**
+     * Optional: links this role template to a specific job profile.
+     * null  → role applies to all jobs (global/unassigned shifts)
+     * non-null → role only appears when that job is selected on a shift
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "job_id", nullable = true)
+    private Job job;
 }

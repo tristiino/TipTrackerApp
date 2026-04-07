@@ -23,6 +23,9 @@ export interface TipOutRole {
   splitType: TipOutType;
   amount: number;
   source?: TipOutSource;
+  /** null/undefined = global role (all jobs); set = scoped to that job */
+  jobId?: number;
+  jobName?: string;
 }
 
 /**

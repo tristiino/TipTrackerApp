@@ -24,4 +24,8 @@ public class TipOutRoleDTO {
 
     /** Which tip pool this role pulls from: CASH, CREDIT, or BOTH (default). */
     private TipOutSource source;
+
+    /** Optional job scope — null means this role applies globally (all jobs / unassigned). */
+    private Long jobId;
+    private String jobName;  // read-only on responses, derived from jobId on create/update
 }
