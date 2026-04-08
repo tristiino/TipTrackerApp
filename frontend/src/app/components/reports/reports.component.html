@@ -72,16 +72,27 @@
         </thead>
         <tbody>
         <ng-container *ngFor="let entry of filteredEntries">
-          <tr>
+          <tr [class.has-notes]="entry.notes" [class.expanded]="expandedEntryId === entry.id" (click)="toggleExpand(entry.id, !!entry.notes)">
             <td>{{ entry.date | date: 'mediumDate' }}</td>
             <td>{{ entry.amount | currency }}</td>
             <td>{{ (entry.totalTipOut ?? entry.tipShare ?? 0) | currency }}</td>
             <td>{{ (entry.netTips ?? entry.amount) | currency }}</td>
             <td>{{ entry.shiftType }}</td>
-            <td class="notes-cell">{{ entry.notes }}</td>
-            <td>
+            <td class="notes-cell">
+              <span *ngIf="entry.notes" class="notes-preview">{{ entry.notes }}</span>
+              <span *ngIf="!entry.notes" class="no-notes">—</span>
+            </td>
+            <td (click)="$event.stopPropagation()">
               <button class="btn-icon" (click)="editTip(entry)" title="Edit"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></button>
               <button class="btn-icon btn-delete" (click)="deleteTip(entry.id)" title="Delete"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>
+            </td>
+          </tr>
+          <tr *ngIf="expandedEntryId === entry.id && entry.notes" class="detail-row">
+            <td colspan="7">
+              <div class="note-detail">
+                <span class="note-label">Note:</span>
+                <span class="note-text">{{ entry.notes }}</span>
+              </div>
             </td>
           </tr>
         </ng-container>

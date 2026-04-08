@@ -25,6 +25,9 @@ export class ReportsComponent implements OnInit {
   jobs: Job[] = [];
   selectedJobId: number | null = null;
 
+  // P2-013: expandable row for full note detail
+  expandedEntryId: number | null = null;
+
   get filteredEntries(): any[] {
     if (!this.report?.tipEntries) return [];
     if (this.selectedJobId === null) return this.report.tipEntries;
@@ -126,6 +129,11 @@ export class ReportsComponent implements OnInit {
    * Exports the current list of tip entries to a CSV file.
    * Phase 2: includes totalTipOut and netTips columns.
    */
+  toggleExpand(entryId: number, hasNotes: boolean): void {
+    if (!hasNotes) return;
+    this.expandedEntryId = this.expandedEntryId === entryId ? null : entryId;
+  }
+
   exportToCSV(): void {
     if (!this.report || !this.report.tipEntries || this.report.tipEntries.length === 0) {
       return;

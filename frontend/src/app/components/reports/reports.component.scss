@@ -123,6 +123,36 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      .no-notes {
+        color: var(--text-light);
+      }
+    }
+    tr.has-notes {
+      cursor: pointer;
+    }
+    tr.expanded {
+      background-color: #f0f4ff;
+    }
+    tr.detail-row {
+      background-color: #f8f9ff;
+      &:hover {
+        background-color: #f8f9ff;
+      }
+      .note-detail {
+        padding: 0.5rem 0.25rem;
+        display: flex;
+        gap: 0.5rem;
+        font-size: 0.92rem;
+        .note-label {
+          font-weight: 600;
+          color: var(--text-light);
+          white-space: nowrap;
+        }
+        .note-text {
+          color: var(--text-color);
+          white-space: pre-wrap;
+        }
+      }
     }
   }
   .btn-icon {
