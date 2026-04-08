@@ -57,6 +57,18 @@ public interface TipEntryRepository extends JpaRepository<TipEntry, Long> {
             @Param("jobId") Long jobId);
 
     /**
+     * Finds entries for a specific user, date range, and tag.
+     * Used for tag-filtered dashboard and analytics.
+     */
+    @Query("SELECT t FROM TipEntry t JOIN t.tags tag " +
+           "WHERE t.user.id = :userId AND t.date BETWEEN :start AND :end AND tag.id = :tagId")
+    List<TipEntry> findByUserIdAndDateBetweenAndTagId(
+            @Param("userId") Long userId,
+            @Param("start") LocalDate start,
+            @Param("end") LocalDate end,
+            @Param("tagId") Long tagId);
+
+    /**
      * Finds the 7 most recent tip entries for a specific user, ordered by date descending.
      */
     List<TipEntry> findTop7ByUserOrderByDateDesc(User user);

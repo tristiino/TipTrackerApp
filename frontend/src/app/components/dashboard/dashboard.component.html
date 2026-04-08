@@ -8,7 +8,7 @@
       </div>
       <div class="summary-content">
         <span class="summary-label">Total Tips</span>
-        <span class="summary-value">${{ summary.totalTips | number:'1.2-2' }}</span>
+        <span class="summary-value">${{ filteredSummary.totalTips | number:'1.2-2' }}</span>
       </div>
     </div>
 
@@ -18,7 +18,7 @@
       </div>
       <div class="summary-content">
         <span class="summary-label">Shifts Worked</span>
-        <span class="summary-value">{{ summary.shiftsWorked }}</span>
+        <span class="summary-value">{{ filteredSummary.shiftsWorked }}</span>
       </div>
     </div>
 
@@ -28,7 +28,7 @@
       </div>
       <div class="summary-content">
         <span class="summary-label">Avg per Shift</span>
-        <span class="summary-value">${{ summary.avgTipsPerShift | number:'1.2-2' }}</span>
+        <span class="summary-value">${{ filteredSummary.avgTipsPerShift | number:'1.2-2' }}</span>
       </div>
     </div>
 
@@ -39,8 +39,8 @@
       <div class="summary-content">
         <span class="summary-label">Est. Hourly Wage</span>
         <span class="summary-value">
-          <ng-container *ngIf="summary.estimatedHourlyWage > 0; else noHours">
-            ${{ summary.estimatedHourlyWage | number:'1.2-2' }}/hr
+          <ng-container *ngIf="filteredSummary.estimatedHourlyWage > 0; else noHours">
+            ${{ filteredSummary.estimatedHourlyWage | number:'1.2-2' }}/hr
           </ng-container>
           <ng-template #noHours>
             <span class="summary-value--muted">No hours logged</span>
@@ -71,6 +71,16 @@
             (ngModelChange)="selectJob($event === 'null' ? null : +$event)">
             <option [value]="null">All Jobs</option>
             <option *ngFor="let j of jobs" [value]="j.id">{{ j.name }}</option>
+          </select>
+        </div>
+        <!-- Tag filter pill (P2-016) -->
+        <div class="job-filter" *ngIf="allTags.length > 0">
+          <select
+            [ngModel]="selectedTagId"
+            [ngModelOptions]="{standalone: true}"
+            (ngModelChange)="selectTag($event === 'null' ? null : +$event)">
+            <option [value]="null">All Tags</option>
+            <option *ngFor="let t of allTags" [value]="t.id">{{ t.name }}</option>
           </select>
         </div>
         <div class="metric-toggle">
@@ -213,22 +223,22 @@
       <div class="tipout-summary-row">
         <span class="tipout-dot" style="background:#20c997"></span>
         <span class="tipout-label">Gross Tips</span>
-        <span class="tipout-value">${{ (summary.grossTips ?? summary.totalTips) | number:'1.2-2' }}</span>
+        <span class="tipout-value">${{ (filteredSummary.grossTips ?? filteredSummary.totalTips) | number:'1.2-2' }}</span>
       </div>
       <div class="tipout-summary-row">
         <span class="tipout-dot" style="background:#f87171"></span>
         <span class="tipout-label">Total Tip-Out</span>
-        <span class="tipout-value tipout-value--neg">-${{ (summary.totalTipOut ?? 0) | number:'1.2-2' }}</span>
+        <span class="tipout-value tipout-value--neg">-${{ (filteredSummary.totalTipOut ?? 0) | number:'1.2-2' }}</span>
       </div>
       <div class="tipout-summary-divider"></div>
       <div class="tipout-summary-row tipout-summary-row--total">
         <span class="tipout-dot" style="background:#60a5fa"></span>
         <span class="tipout-label">Net Take-Home</span>
-        <span class="tipout-value tipout-value--net">${{ summary.netEarnings | number:'1.2-2' }}</span>
+        <span class="tipout-value tipout-value--net">${{ filteredSummary.netEarnings | number:'1.2-2' }}</span>
       </div>
     </div>
 
-    <p class="tipout-no-roles-hint" *ngIf="(summary.totalTipOut ?? 0) === 0">
+    <p class="tipout-no-roles-hint" *ngIf="(filteredSummary.totalTipOut ?? 0) === 0">
       No tip-outs recorded this period.
       <a routerLink="/tip-out-roles">Set up roles</a> to track them automatically.
     </p>

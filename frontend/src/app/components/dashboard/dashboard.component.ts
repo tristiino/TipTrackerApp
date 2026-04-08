@@ -6,6 +6,10 @@ import { TipService } from '../../services/tip.service';
 import { PayPeriodService, PayPeriod } from '../../services/pay-period.service';
 import { JobService } from '../../services/job.service';
 import { Job } from '../../models/job.model';
+import { TagService } from '../../services/tag.service';
+import { Tag } from '../../models/tag.model';
+import { ReportService } from '../../services/report.service';
+import { AuthService } from '../../services/auth.service';
 
 interface Metric {
   key: string;
@@ -45,13 +49,19 @@ export class DashboardComponent implements OnInit {
   jobs: Job[] = [];
   selectedJobId: number | null = null;
 
+  // P2-016: tag filter
+  allTags: Tag[] = [];
+  selectedTagId: number | null = null;
+
   periodTotal = 0;
   activeDays  = 0;
   totalCash   = 0;
   totalCredit = 0;
   summary: any = null;
+  filteredSummary: any = null;   // P2-016: re-computed when tag filter active
 
   private rawData: any[] = [];
+  private rawEntries: any[] = [];  // full tip entries (for tag-filtered summary)
 
   groupByOptions: { key: GroupBy; label: string }[] = [
     { key: 'payperiod', label: 'Pay Period' },
@@ -176,10 +186,14 @@ export class DashboardComponent implements OnInit {
     private tipService: TipService,
     private payPeriodService: PayPeriodService,
     private jobService: JobService,
+    private tagService: TagService,
+    private reportService: ReportService,
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
     this.jobService.getJobs().subscribe(jobs => { this.jobs = jobs; });
+    this.tagService.getTags().subscribe(tags => { this.allTags = tags; });
     this.buildAvailablePeriods();
     this.payPeriod = this.availablePeriods.find(p => p.offset === 0)?.period ?? null;
     if (this.payPeriod) {
@@ -234,6 +248,11 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  selectTag(tagId: number | null): void {
+    this.selectedTagId = tagId;
+    this.applyTagFilter();
+  }
+
   loadData(days: number): void {
     this.selectedDays = days;
     this.isLoading = true;
@@ -272,6 +291,7 @@ export class DashboardComponent implements OnInit {
   private applyData(earnings: any[], summary: any): void {
     this.rawData = earnings;
     this.summary = summary;
+    this.filteredSummary = summary;
 
     this.chartData = {
       ...this.chartData,
@@ -294,9 +314,51 @@ export class DashboardComponent implements OnInit {
       this.chart?.chart?.update();
     });
 
+    // Fetch full entries for tag-filtered summary (P2-016)
+    const user = this.authService.getUser();
+    if (user?.id) {
+      const end   = new Date().toISOString().split('T')[0];
+      const start = new Date(Date.now() - (this.selectedDays - 1) * 86400000).toISOString().split('T')[0];
+      this.reportService.getReportSummary(user.id, start, end).subscribe({
+        next: (report) => {
+          this.rawEntries = report.tipEntries ?? [];
+          this.applyTagFilter();
+        },
+        error: () => {}
+      });
+    }
+
     this.updateStats();
     this.updateBreakdown();
     this.isLoading = false;
+  }
+
+  /** P2-016: recomputes filteredSummary from rawEntries filtered by selectedTagId. */
+  private applyTagFilter(): void {
+    if (!this.selectedTagId || !this.rawEntries.length) {
+      this.filteredSummary = this.summary;
+      return;
+    }
+    const entries = this.rawEntries.filter((e: any) =>
+      e.tags?.some((t: any) => t.id === this.selectedTagId)
+    );
+    const gross      = entries.reduce((s: number, e: any) => s + (e.amount ?? 0), 0);
+    const tipOut     = entries.reduce((s: number, e: any) => s + (e.totalTipOut ?? 0), 0);
+    const net        = entries.reduce((s: number, e: any) => s + (e.netTips ?? e.amount ?? 0), 0);
+    const shifts     = entries.length;
+    const avgPerShift = shifts > 0 ? gross / shifts : 0;
+    const hours      = entries.reduce((s: number, e: any) => s + (e.hoursWorked ?? 0), 0);
+    const hourly     = hours > 0 ? gross / hours : 0;
+    this.filteredSummary = {
+      totalTips: gross,
+      grossTips: gross,
+      netEarnings: net,
+      shiftsWorked: shifts,
+      avgTipsPerShift: avgPerShift,
+      totalHoursWorked: hours,
+      estimatedHourlyWage: hourly,
+      totalTipOut: tipOut,
+    };
   }
 
   setMetric(key: string): void {
