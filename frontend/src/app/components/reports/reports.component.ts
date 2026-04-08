@@ -6,6 +6,8 @@ import { TipService } from 'src/app/services/tip.service';
 import { TipOutRoleService } from '../../services/tip-out-role.service';
 import { JobService } from '../../services/job.service';
 import { Job } from '../../models/job.model';
+import { TagService } from '../../services/tag.service';
+import { Tag } from '../../models/tag.model';
 import { saveAs } from 'file-saver';
 
 
@@ -28,12 +30,38 @@ export class ReportsComponent implements OnInit {
   // P2-013: expandable row for full note detail
   expandedEntryId: number | null = null;
 
+  // P2-015: keyword + tag search
+  searchKeyword = '';
+  filterTagId: number | null = null;
+  allTags: Tag[] = [];
+
   get filteredEntries(): any[] {
     if (!this.report?.tipEntries) return [];
-    if (this.selectedJobId === null) return this.report.tipEntries;
-    return this.report.tipEntries.filter((e: any) =>
-      this.selectedJobId === 0 ? !e.jobId : e.jobId === this.selectedJobId
-    );
+    let entries: any[] = this.report.tipEntries;
+
+    // Job filter (client-side)
+    if (this.selectedJobId !== null) {
+      entries = entries.filter((e: any) =>
+        this.selectedJobId === 0 ? !e.jobId : e.jobId === this.selectedJobId
+      );
+    }
+
+    // Keyword search — matches notes (case-insensitive)
+    const kw = this.searchKeyword.trim().toLowerCase();
+    if (kw) {
+      entries = entries.filter((e: any) =>
+        e.notes && e.notes.toLowerCase().includes(kw)
+      );
+    }
+
+    // Tag filter
+    if (this.filterTagId !== null) {
+      entries = entries.filter((e: any) =>
+        e.tags?.some((t: any) => t.id === this.filterTagId)
+      );
+    }
+
+    return entries;
   }
 
   constructor(
@@ -42,6 +70,7 @@ export class ReportsComponent implements OnInit {
     private tipService: TipService,
     private tipOutRoleService: TipOutRoleService,
     private jobService: JobService,
+    private tagService: TagService,
     private router: Router
   ) {
     // Set a default date range for the last 14 days.
@@ -59,6 +88,10 @@ export class ReportsComponent implements OnInit {
     this.loadReport();
     this.jobService.getJobs().subscribe({
       next: (jobs) => this.jobs = jobs,
+      error: () => {}
+    });
+    this.tagService.getTags().subscribe({
+      next: (tags) => this.allTags = tags,
       error: () => {}
     });
   }

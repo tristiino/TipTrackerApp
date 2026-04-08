@@ -13,6 +13,10 @@
       <label for="endDate">End Date:</label>
       <input type="date" id="endDate" [(ngModel)]="endDate" />
     </div>
+    <div class="form-group">
+      <label for="keywordSearch">Search Notes:</label>
+      <input type="text" id="keywordSearch" [(ngModel)]="searchKeyword" placeholder="Filter by keyword…" />
+    </div>
     <div class="form-group" *ngIf="jobs.length > 0">
       <label for="jobFilter">Job:</label>
       <select id="jobFilter" [(ngModel)]="selectedJobId">
@@ -21,7 +25,17 @@
         <option [ngValue]="0">Unassigned</option>
       </select>
     </div>
-    <button class="btn-primary" (click)="loadReport()">View Report</button>
+    <div class="form-group" *ngIf="allTags.length > 0">
+      <label for="tagFilter">Tag:</label>
+      <select id="tagFilter" [(ngModel)]="filterTagId">
+        <option [ngValue]="null">All Tags</option>
+        <option *ngFor="let tag of allTags" [ngValue]="tag.id">{{ tag.name }}</option>
+      </select>
+    </div>
+    <div class="filter-actions">
+      <button class="btn-primary" (click)="loadReport()">View Report</button>
+      <button class="btn-clear" *ngIf="searchKeyword || filterTagId !== null" (click)="searchKeyword = ''; filterTagId = null">Clear</button>
+    </div>
     <p *ngIf="dateRangeError" class="date-range-error">{{ dateRangeError }}</p>
   </div>
 
