@@ -7,6 +7,10 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Represents a single Tip Entry entity in the database,
@@ -69,6 +73,13 @@ public class TipEntry {
     private String notes;
 
     /**
+     * The job profile this shift belongs to. Null for unassigned shifts (pre-Sprint 2 entries).
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "job_id", nullable = true)
+    private Job job;
+
+    /**
      * The User who this tip entry belongs to.
      * This represents the "many" side of a one-to-many relationship.
      * JsonBackReference is used to prevent infinite loops during JSON serialization.
@@ -77,5 +88,27 @@ public class TipEntry {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    /**
+     * The tip-out deductions applied to this shift.
+     * CascadeType.ALL + orphanRemoval means records are deleted automatically
+     * when the shift is deleted or when we clear and re-apply roles on update.
+     * mappedBy="tipEntry" means the FK (tip_entry_id) lives on TipOutRecord's side.
+     */
+    @OneToMany(mappedBy = "tipEntry", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TipOutRecord> tipOutRecords = new ArrayList<>();
+
+    /**
+     * User-defined tags applied to this shift.
+     * ManyToMany: a tag can be applied to many shifts, a shift can have many tags.
+     * P2-014: Shift Notes, Tags & Search
+     */
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "tip_entry_tags",
+        joinColumns = @JoinColumn(name = "tip_entry_id"),
+        inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private Set<Tag> tags = new HashSet<>();
 
 }

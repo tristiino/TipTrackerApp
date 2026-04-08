@@ -135,6 +135,14 @@
   margin: 0;
 }
 
+// --- Header right side (job filter + metric toggles) ---
+.chart-header-right {
+  display: flex;
+  align-items: center;
+  gap: $space-3;
+  flex-wrap: wrap;
+}
+
 // --- Metric toggle (top right) ---
 .metric-toggle {
   display: flex;
@@ -293,6 +301,63 @@
   }
 }
 
+// --- Period selector tabs (pay period mode) ---
+.period-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-1;
+  margin-bottom: $space-4;
+
+  button {
+    padding: $space-1 $space-3;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+    color: #64748b;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: $radius-sm;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover {
+      color: #cbd5e1;
+      background-color: rgba(255, 255, 255, 0.06);
+    }
+
+    &.active {
+      color: #f1f5f9;
+      background-color: rgba(255, 255, 255, 0.1);
+      font-weight: $font-weight-semi;
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+  }
+}
+
+// --- Job filter dropdown (inline in header) ---
+.job-filter {
+  select {
+    padding: $space-1 $space-3;
+    font-size: $font-size-xs;
+    font-weight: $font-weight-medium;
+    color: #f1f5f9;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: $radius-full;
+    cursor: pointer;
+    outline: none;
+    min-height: 32px;
+
+    option {
+      background-color: #1e293b;
+      color: #f1f5f9;
+    }
+
+    &:focus {
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+  }
+}
+
 // --- Chart area ---
 .chart-wrapper {
   position: relative;
@@ -378,4 +443,80 @@
   height: 1px;
   background-color: rgba(255, 255, 255, 0.06);
   margin: $space-1 0;
+}
+
+// ── Tip-Out Breakdown card ──────────────────────────────────────────────────
+
+.tipout-summary-card {
+  margin-top: $space-6;
+}
+
+.tipout-manage-link {
+  font-size: $font-size-sm;
+  color: #60a5fa;
+  text-decoration: none;
+
+  &:hover { text-decoration: underline; }
+}
+
+.tipout-summary-rows {
+  display: flex;
+  flex-direction: column;
+  gap: $space-3;
+  padding-top: $space-4;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.tipout-summary-row {
+  display: flex;
+  align-items: center;
+  gap: $space-2;
+
+  &--total {
+    .tipout-label,
+    .tipout-value {
+      font-weight: $font-weight-semi;
+      color: #f1f5f9;
+    }
+  }
+}
+
+.tipout-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: $radius-full;
+  flex-shrink: 0;
+}
+
+.tipout-label {
+  font-size: $font-size-sm;
+  color: #64748b;
+  flex: 1;
+}
+
+.tipout-value {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semi;
+  color: #cbd5e1;
+
+  &--neg { color: #f87171; }
+  &--net { color: #60a5fa; }
+}
+
+.tipout-summary-divider {
+  height: 1px;
+  background-color: rgba(255, 255, 255, 0.06);
+  margin: $space-1 0;
+}
+
+.tipout-no-roles-hint {
+  margin-top: $space-4;
+  font-size: $font-size-sm;
+  color: #64748b;
+
+  a {
+    color: #60a5fa;
+    text-decoration: none;
+    &:hover { text-decoration: underline; }
+  }
 }

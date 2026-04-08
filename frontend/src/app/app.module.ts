@@ -22,6 +22,9 @@ import { NavBarComponent } from './shared/nav-bar/nav-bar.component';
 import { QuickAddModalComponent } from './components/quick-add-modal/quick-add-modal.component';
 import { FooterComponent } from './shared/footer/footer.component';
 import { LoginNavBarComponent } from './shared/login-nav-bar/login-nav-bar.component';
+import { TipOutRoleManagerComponent } from './components/tip-out-role-manager/tip-out-role-manager.component';
+import { TipOutBreakdownComponent } from './components/tip-out-breakdown/tip-out-breakdown.component';
+import { JobManagerComponent } from './components/job-manager/job-manager.component';
 
 
 import { AuthInterceptor } from './auth.interceptor';
@@ -40,7 +43,10 @@ import { AuthGuard } from './guards/auth.guard';
     RegisterComponent,
     LoginNavBarComponent,
     HomeComponent,
-    QuickAddModalComponent
+    QuickAddModalComponent,
+    TipOutRoleManagerComponent,
+    TipOutBreakdownComponent,
+    JobManagerComponent
   ],
   imports: [
     BrowserModule,

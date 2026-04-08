@@ -1,8 +1,14 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ReportService } from 'src/app/services/report.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { TipService } from 'src/app/services/tip.service';
+import { TipOutRoleService } from '../../services/tip-out-role.service';
+import { JobService } from '../../services/job.service';
+import { Job } from '../../models/job.model';
+import { TagService } from '../../services/tag.service';
+import { Tag } from '../../models/tag.model';
+import { PayPeriodService } from '../../services/pay-period.service';
 import { saveAs } from 'file-saver';
 
 
@@ -18,32 +24,111 @@ export class ReportsComponent implements OnInit {
   isLoading = false;
   dateRangeError: string = '';
 
-  showEditModal = false;
-  editingTip: any = null;
-  editForm: FormGroup;
+  // P2-009: job filter
+  jobs: Job[] = [];
+  selectedJobId: number | null = null;
+
+  // P2-013: expandable row for full note detail
+  expandedEntryId: number | null = null;
+
+  // P2-018: calendar view toggle — persisted in localStorage
+  private readonly VIEW_MODE_KEY = 'reportsViewMode';
+  viewMode: 'table' | 'calendar' = (localStorage.getItem('reportsViewMode') as 'table' | 'calendar') ?? 'calendar';
+
+  setViewMode(mode: 'table' | 'calendar'): void {
+    this.viewMode = mode;
+    localStorage.setItem(this.VIEW_MODE_KEY, mode);
+  }
+
+  get calendarDays(): { date: string; entries: any[] }[] {
+    if (!this.report?.tipEntries) return [];
+
+    // Build a map of date → entries from filteredEntries
+    const map = new Map<string, any[]>();
+    for (const e of this.filteredEntries) {
+      const d = e.date;
+      if (!map.has(d)) map.set(d, []);
+      map.get(d)!.push(e);
+    }
+
+    // Walk every day in the range
+    const days: { date: string; entries: any[] }[] = [];
+    const start = new Date(this.startDate + 'T00:00:00');
+    const end   = new Date(this.endDate   + 'T00:00:00');
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const key = d.toISOString().split('T')[0];
+      days.push({ date: key, entries: map.get(key) ?? [] });
+    }
+    return days;
+  }
+
+  /** Returns the offset (0=Sun … 6=Sat) of the first day so the grid aligns correctly. */
+  get calendarStartOffset(): number {
+    if (!this.startDate) return 0;
+    return new Date(this.startDate + 'T00:00:00').getDay();
+  }
+
+  sumNetTips(entries: any[]): number {
+    return entries.reduce((s, e) => s + (e.netTips ?? e.amount ?? 0), 0);
+  }
+
+  // P2-015: keyword + tag search
+  searchKeyword = '';
+  filterTagId: number | null = null;
+  allTags: Tag[] = [];
+
+
+  get filteredEntries(): any[] {
+    if (!this.report?.tipEntries) return [];
+    let entries: any[] = this.report.tipEntries;
+
+    // Job filter (client-side)
+    if (this.selectedJobId !== null) {
+      entries = entries.filter((e: any) =>
+        this.selectedJobId === 0 ? !e.jobId : e.jobId === this.selectedJobId
+      );
+    }
+
+    // Keyword search — matches notes (case-insensitive)
+    const kw = this.searchKeyword.trim().toLowerCase();
+    if (kw) {
+      entries = entries.filter((e: any) =>
+        e.notes && e.notes.toLowerCase().includes(kw)
+      );
+    }
+
+    // Tag filter
+    if (this.filterTagId !== null) {
+      entries = entries.filter((e: any) =>
+        e.tags?.some((t: any) => t.id === this.filterTagId)
+      );
+    }
+
+    return entries;
+  }
 
   constructor(
     private reportService: ReportService,
     private authService: AuthService,
     private tipService: TipService,
-    private fb: FormBuilder
+    private tipOutRoleService: TipOutRoleService,
+    private jobService: JobService,
+    private tagService: TagService,
+    private payPeriodService: PayPeriodService,
+    private router: Router
   ) {
-    this.editForm = this.fb.group({
-      cashTips:     ['', [Validators.required, Validators.min(0)]],
-      creditTips:   ['', [Validators.required, Validators.min(0)]],
-      date:         ['', [Validators.required]],
-      shiftType:    ['', [Validators.required]],
-      notes:        [''],
-      peopleInPool: ['', [Validators.required, Validators.min(1)]],
-      startTime:    [''],
-      endTime:      [''],
-    });
-    // Set a default date range for the last 14 days.
-    const today = new Date();
-    const lastWeek = new Date();
-    lastWeek.setDate(today.getDate() - 14);
-    this.endDate = today.toISOString().split('T')[0];
-    this.startDate = lastWeek.toISOString().split('T')[0];
+    // Use the current pay period if configured, otherwise fall back to last 14 days.
+    const payPeriod = this.payPeriodService.getCurrentPayPeriod();
+    if (payPeriod) {
+      this.startDate = payPeriod.startDate;
+      this.endDate = payPeriod.endDate;
+    } else {
+      const today = new Date();
+      const twoWeeksAgo = new Date();
+      twoWeeksAgo.setDate(today.getDate() - 14);
+      this.endDate = today.toISOString().split('T')[0];
+      this.startDate = twoWeeksAgo.toISOString().split('T')[0];
+    }
   }
 
   /**
@@ -51,6 +136,14 @@ export class ReportsComponent implements OnInit {
    */
   ngOnInit(): void {
     this.loadReport();
+    this.jobService.getJobs().subscribe({
+      next: (jobs) => this.jobs = jobs,
+      error: () => {}
+    });
+    this.tagService.getTags().subscribe({
+      next: (tags) => this.allTags = tags,
+      error: () => {}
+    });
   }
 
   /**
@@ -84,62 +177,11 @@ export class ReportsComponent implements OnInit {
     });
   }
 
-  get editTotalTips(): number {
-    const cash   = parseFloat(this.editForm.get('cashTips')?.value)   || 0;
-    const credit = parseFloat(this.editForm.get('creditTips')?.value) || 0;
-    return cash + credit;
-  }
-
-  get editHoursWorked(): number | null {
-    const start = this.editForm.get('startTime')?.value;
-    const end   = this.editForm.get('endTime')?.value;
-    if (!start || !end) return null;
-    const [sh, sm] = start.split(':').map(Number);
-    const [eh, em] = end.split(':').map(Number);
-    const minutes = (eh * 60 + em) - (sh * 60 + sm);
-    if (minutes <= 0) return null;
-    return Math.round((minutes / 60) * 100) / 100;
-  }
-
   /**
-   * Opens the edit modal pre-populated with the selected tip entry.
+   * Navigates to the full edit form, passing the entry as router state.
    */
   editTip(tip: any): void {
-    this.editingTip = tip;
-    this.editForm.setValue({
-      cashTips:     tip.cashTips     ?? tip.amount ?? 0,
-      creditTips:   tip.creditTips   ?? 0,
-      date:         tip.date,
-      shiftType:    tip.shiftType    ?? '',
-      notes:        tip.notes        ?? '',
-      peopleInPool: tip.peopleInPool ?? 1,
-      startTime:    tip.startTime    ?? '',
-      endTime:      tip.endTime      ?? '',
-    });
-    this.showEditModal = true;
-  }
-
-  selectEditShift(shift: string): void {
-    this.editForm.get('shiftType')?.setValue(shift);
-  }
-
-  closeEditModal(): void {
-    this.showEditModal = false;
-    this.editingTip = null;
-  }
-
-  saveEdit(): void {
-    if (this.editForm.invalid || !this.editingTip) return;
-    const cash   = parseFloat(this.editForm.value.cashTips)   || 0;
-    const credit = parseFloat(this.editForm.value.creditTips) || 0;
-    const updated = { ...this.editingTip, ...this.editForm.value, amount: cash + credit };
-    this.tipService.updateTip(this.editingTip.id, updated).subscribe({
-      next: () => {
-        this.closeEditModal();
-        this.loadReport();
-      },
-      error: (err) => console.error('Failed to update tip:', err)
-    });
+    this.router.navigate(['/edit', tip.id], { state: { tip } });
   }
 
   /**
@@ -156,16 +198,40 @@ export class ReportsComponent implements OnInit {
   }
 
   /**
-   * Exports the current list of tip entries to a CSV file.
+   * Handles a tip-out record override emitted by <app-tip-out-breakdown>.
+   * Calls the API to persist the change, then reloads the report so totals update.
    */
+  onRecordOverridden(event: { recordId: number; finalAmount: number }): void {
+    this.tipOutRoleService.overrideRecord(event.recordId, event.finalAmount).subscribe({
+      next: () => this.loadReport(),
+      error: (err) => console.error('Failed to save override:', err)
+    });
+  }
+
+  /**
+   * Exports the current list of tip entries to a CSV file.
+   * Phase 2: includes totalTipOut and netTips columns.
+   */
+  toggleExpand(entryId: number, hasNotes: boolean): void {
+    if (!hasNotes) return;
+    this.expandedEntryId = this.expandedEntryId === entryId ? null : entryId;
+  }
+
   exportToCSV(): void {
     if (!this.report || !this.report.tipEntries || this.report.tipEntries.length === 0) {
       return;
     }
     const data = this.report.tipEntries;
-    const headers = ['Date', 'Amount', 'Tip Share', 'Shift Type', 'Notes'];
+    const headers = ['Date', 'Gross Amount', 'Total Tip-Out', 'Net Tips', 'Shift Type', 'Notes'];
     const rows = data.map((entry: any) =>
-      [entry.date, entry.amount, entry.tipShare, entry.shiftType, JSON.stringify(entry.notes)].join(',')
+      [
+        entry.date,
+        entry.amount,
+        entry.totalTipOut ?? entry.tipShare ?? 0,
+        entry.netTips ?? entry.amount,
+        entry.shiftType,
+        JSON.stringify(entry.notes ?? '')
+      ].join(',')
     );
     const csvContent = [headers.join(','), ...rows].join('\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });

@@ -1,0 +1,74 @@
+<div class="tip-out-breakdown" *ngIf="hasRecords">
+  <h4 class="breakdown-title">Tip-Out Breakdown</h4>
+
+  <table class="breakdown-table">
+    <thead>
+      <tr>
+        <th>Role</th>
+        <th>Calculated</th>
+        <th>Final</th>
+        <th *ngIf="!readonly">Edit</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        *ngFor="let record of records"
+        [class.record--overridden]="record.isOverridden">
+
+        <td>
+          {{ record.roleName }}
+          <span class="override-badge" *ngIf="record.isOverridden" title="Manually overridden">✏️</span>
+        </td>
+
+        <td>${{ record.computedAmount | number:'1.2-2' }}</td>
+
+        <!-- Final amount: input when editing, display otherwise -->
+        <td>
+          <ng-container *ngIf="isEditing(record); else displayFinal">
+            <input
+              type="number"
+              class="override-input"
+              [(ngModel)]="overrideValue"
+              min="0"
+              step="0.01"
+              (keyup.enter)="saveOverride(record)"
+              (keyup.escape)="cancelOverride()" />
+          </ng-container>
+          <ng-template #displayFinal>
+            ${{ record.finalAmount | number:'1.2-2' }}
+          </ng-template>
+        </td>
+
+        <td *ngIf="!readonly">
+          <ng-container *ngIf="isEditing(record); else editButtons">
+            <button class="btn-save" (click)="saveOverride(record)">Save</button>
+            <button class="btn-cancel" (click)="cancelOverride()">Cancel</button>
+          </ng-container>
+          <ng-template #editButtons>
+            <button class="btn-edit" (click)="startOverride(record)">Override</button>
+          </ng-template>
+        </td>
+
+      </tr>
+    </tbody>
+    <tfoot>
+      <tr class="breakdown-totals">
+        <td><strong>Total Tip-Out</strong></td>
+        <td></td>
+        <td><strong>-${{ totalTipOut | number:'1.2-2' }}</strong></td>
+        <td *ngIf="!readonly"></td>
+      </tr>
+      <tr class="breakdown-net">
+        <td><strong>Net Tips</strong></td>
+        <td></td>
+        <td><strong>${{ netTips | number:'1.2-2' }}</strong></td>
+        <td *ngIf="!readonly"></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<!-- When no roles are applied to this shift -->
+<div class="no-tipout" *ngIf="!hasRecords && grossTips > 0">
+  <span class="no-tipout-label">No tip-outs applied</span>
+</div>

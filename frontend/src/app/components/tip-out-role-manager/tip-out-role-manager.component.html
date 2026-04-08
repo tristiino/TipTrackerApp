@@ -1,0 +1,157 @@
+<div class="role-manager">
+  <div class="role-manager__header">
+    <h2>Tip-Out Roles</h2>
+    <p class="subtitle">Define who you tip out and how much. Roles are saved as templates you can apply when logging a shift.</p>
+  </div>
+
+  <!-- Feedback messages -->
+  <div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
+  <div class="alert alert-danger"  *ngIf="errorMessage && !isFormVisible">{{ errorMessage }}</div>
+
+  <!-- Role list -->
+  <div class="role-list" *ngIf="roles.length > 0">
+    <div class="role-card" *ngFor="let role of roles">
+      <div class="role-card__info">
+        <span class="role-card__name">{{ role.name }}</span>
+        <span class="role-card__badge" [class.badge--percent]="role.splitType === 'PERCENTAGE'" [class.badge--fixed]="role.splitType === 'FIXED_AMOUNT'">
+          {{ role.splitType === 'PERCENTAGE' ? 'Percentage' : 'Fixed $' }}
+        </span>
+        <span class="role-card__amount">{{ formatAmount(role) }}</span>
+        <span class="role-card__source">
+          {{ role.source === 'CASH' ? 'cash' : role.source === 'CREDIT' ? 'credit' : 'total' }}
+        </span>
+        <span class="role-card__job" *ngIf="role.jobName">· {{ role.jobName }}</span>
+        <span class="role-card__job role-card__job--global" *ngIf="!role.jobName">· All jobs</span>
+      </div>
+      <div class="role-card__actions">
+        <button class="btn-icon" (click)="editRole(role)" title="Edit">
+          <svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+        </button>
+        <button class="btn-icon btn-icon--danger" (click)="deleteRole(role)" title="Delete">
+          <svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Percentage total summary -->
+    <div class="percent-summary" *ngIf="existingPercentageTotal > 0">
+      <span>Total percentage allocated: <strong>{{ existingPercentageTotal }}%</strong></span>
+      <span class="percent-remaining"> ({{ 100 - existingPercentageTotal }}% remaining)</span>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="roles.length === 0 && !isFormVisible">
+    <p>No tip-out roles yet. Add your first role below.</p>
+  </div>
+
+  <!-- Add / Edit form -->
+  <div class="role-form-card" *ngIf="isFormVisible">
+    <h3>{{ editingRoleId ? 'Edit Role' : 'New Role' }}</h3>
+
+    <div class="alert alert-danger" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+    <form [formGroup]="form" (ngSubmit)="saveRole()">
+
+      <div class="form-group">
+        <label for="roleName">Role name</label>
+        <input
+          id="roleName"
+          type="text"
+          class="form-control"
+          formControlName="name"
+          placeholder="e.g. Busser, Bartender, Host"
+          [class.is-invalid]="form.get('name')!.invalid && form.get('name')!.touched" />
+        <div class="invalid-feedback" *ngIf="form.get('name')!.errors?.['required']">
+          Name is required.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Split type</label>
+        <div class="split-type-toggle">
+          <label class="split-option" [class.split-option--active]="splitType === 'PERCENTAGE'">
+            <input type="radio" formControlName="splitType" value="PERCENTAGE" />
+            Percentage of gross
+          </label>
+          <label class="split-option" [class.split-option--active]="splitType === 'FIXED_AMOUNT'">
+            <input type="radio" formControlName="splitType" value="FIXED_AMOUNT" />
+            Fixed dollar amount
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Tips from</label>
+        <div class="split-type-toggle">
+          <label class="split-option" [class.split-option--active]="source === 'BOTH'">
+            <input type="radio" formControlName="source" value="BOTH" />
+            Cash + Credit (total)
+          </label>
+          <label class="split-option" [class.split-option--active]="source === 'CASH'">
+            <input type="radio" formControlName="source" value="CASH" />
+            Cash only
+          </label>
+          <label class="split-option" [class.split-option--active]="source === 'CREDIT'">
+            <input type="radio" formControlName="source" value="CREDIT" />
+            Credit only
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="roleAmount">
+          Amount <span *ngIf="isPercentage">(% of gross tips)</span><span *ngIf="!isPercentage">($ per shift)</span>
+        </label>
+        <div class="amount-input-wrapper">
+          <span class="amount-prefix" *ngIf="!isPercentage">$</span>
+          <input
+            id="roleAmount"
+            type="number"
+            class="form-control"
+            formControlName="amount"
+            [placeholder]="isPercentage ? 'e.g. 5' : 'e.g. 10.00'"
+            min="0.01"
+            step="0.01"
+            [class.is-invalid]="form.get('amount')!.invalid && form.get('amount')!.touched" />
+          <span class="amount-suffix" *ngIf="isPercentage">%</span>
+        </div>
+        <div class="invalid-feedback" *ngIf="form.get('amount')!.errors?.['required']">
+          Amount is required.
+        </div>
+        <div class="invalid-feedback" *ngIf="form.get('amount')!.errors?.['min']">
+          Amount must be greater than 0.
+        </div>
+      </div>
+
+      <!-- Job scope selector (P2-011) — only shown when user has jobs -->
+      <div class="form-group" *ngIf="jobs.length > 0">
+        <label>Applies to</label>
+        <select class="form-control" formControlName="jobId">
+          <option [ngValue]="null">All jobs (global)</option>
+          <option *ngFor="let j of jobs" [ngValue]="j.id">{{ j.name }}</option>
+        </select>
+      </div>
+
+      <!-- Live percentage preview (P2-005 client-side guard) -->
+      <div class="percent-preview" *ngIf="isPercentage">
+        <span>Projected total: <strong [class.text-danger]="wouldExceed100">{{ projectedPercentageTotal }}%</strong></span>
+        <div class="alert alert-warning mt-2" *ngIf="wouldExceed100">
+          This would push your total percentage tip-out over 100%. Please reduce the amount.
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="form.invalid || wouldExceed100 || isLoading">
+          {{ isLoading ? 'Saving…' : (editingRoleId ? 'Update Role' : 'Add Role') }}
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="cancelForm()">Cancel</button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- Add role button (shown when form is hidden) -->
+  <button class="btn btn-outline-primary mt-3" *ngIf="!isFormVisible" (click)="showAddForm()">
+    + Add Tip-Out Role
+  </button>
+</div>

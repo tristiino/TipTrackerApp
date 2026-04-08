@@ -4,6 +4,12 @@ import { BaseChartDirective } from 'ng2-charts';
 import { forkJoin } from 'rxjs';
 import { TipService } from '../../services/tip.service';
 import { PayPeriodService, PayPeriod } from '../../services/pay-period.service';
+import { JobService } from '../../services/job.service';
+import { Job } from '../../models/job.model';
+import { TagService } from '../../services/tag.service';
+import { Tag } from '../../models/tag.model';
+import { ReportService } from '../../services/report.service';
+import { AuthService } from '../../services/auth.service';
 
 interface Metric {
   key: string;
@@ -37,14 +43,25 @@ export class DashboardComponent implements OnInit {
   isLoading = true;
 
   payPeriod: PayPeriod | null = null;
+  selectedPeriodOffset = 0;
+  availablePeriods: { label: string; offset: number; period: PayPeriod }[] = [];
+
+  jobs: Job[] = [];
+  selectedJobId: number | null = null;
+
+  // P2-016: tag filter
+  allTags: Tag[] = [];
+  selectedTagId: number | null = null;
 
   periodTotal = 0;
   activeDays  = 0;
   totalCash   = 0;
   totalCredit = 0;
   summary: any = null;
+  filteredSummary: any = null;   // P2-016: re-computed when tag filter active
 
   private rawData: any[] = [];
+  private rawEntries: any[] = [];  // full tip entries (for tag-filtered summary)
 
   groupByOptions: { key: GroupBy; label: string }[] = [
     { key: 'payperiod', label: 'Pay Period' },
@@ -77,6 +94,8 @@ export class DashboardComponent implements OnInit {
     { key: 'cash',   label: 'Cash',         datasetIndex: 1, color: '#198754', bgColor: 'rgba(25, 135, 84, 0.12)',   dataKey: 'cashTips'    },
     { key: 'credit', label: 'Credit',       datasetIndex: 2, color: '#ffc107', bgColor: 'rgba(255, 193, 7, 0.12)',   dataKey: 'creditTips'  },
     { key: 'net',    label: 'Net Earnings', datasetIndex: 3, color: '#6f42c1', bgColor: 'rgba(111, 66, 193, 0.12)',  dataKey: 'netEarnings' },
+    // Phase 2 (P2-006): Gross tips before tip-outs — enables the gross vs. net comparison
+    { key: 'gross',  label: 'Gross Tips',   datasetIndex: 4, color: '#20c997', bgColor: 'rgba(32, 201, 151, 0.12)', dataKey: 'grossTips'   },
   ];
 
   get activeMetricDef(): Metric {
@@ -90,6 +109,8 @@ export class DashboardComponent implements OnInit {
       { label: 'Cash',         data: [], borderColor: '#198754', backgroundColor: 'rgba(25, 135, 84, 0.12)',   fill: true, tension: 0.4, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: '#198754', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2, hidden: true },
       { label: 'Credit',       data: [], borderColor: '#ffc107', backgroundColor: 'rgba(255, 193, 7, 0.12)',   fill: true, tension: 0.4, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: '#ffc107', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2, hidden: true },
       { label: 'Net Earnings', data: [], borderColor: '#6f42c1', backgroundColor: 'rgba(111, 66, 193, 0.12)', fill: true, tension: 0.4, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: '#6f42c1', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2, hidden: true },
+      // Phase 2 (P2-006): Gross tips dataset — hidden by default, toggled via metric buttons
+      { label: 'Gross Tips',   data: [], borderColor: '#20c997', backgroundColor: 'rgba(32, 201, 151, 0.12)', fill: true, tension: 0.4, borderWidth: 2.5, pointRadius: 0, pointHoverRadius: 5, pointHoverBackgroundColor: '#20c997', pointHoverBorderColor: '#fff', pointHoverBorderWidth: 2, hidden: true },
     ],
   };
 
@@ -164,10 +185,17 @@ export class DashboardComponent implements OnInit {
   constructor(
     private tipService: TipService,
     private payPeriodService: PayPeriodService,
+    private jobService: JobService,
+    private tagService: TagService,
+    private reportService: ReportService,
+    private authService: AuthService,
   ) {}
 
   ngOnInit(): void {
-    this.payPeriod = this.payPeriodService.getCurrentPayPeriod();
+    this.jobService.getJobs().subscribe(jobs => { this.jobs = jobs; });
+    this.tagService.getTags().subscribe(tags => { this.allTags = tags; });
+    this.buildAvailablePeriods();
+    this.payPeriod = this.availablePeriods.find(p => p.offset === 0)?.period ?? null;
     if (this.payPeriod) {
       this.loadPayPeriodData();
     } else {
@@ -178,7 +206,9 @@ export class DashboardComponent implements OnInit {
   setGroupBy(key: GroupBy): void {
     this.groupBy = key;
     if (key === 'payperiod') {
-      this.payPeriod = this.payPeriodService.getCurrentPayPeriod();
+      this.buildAvailablePeriods();
+      this.selectedPeriodOffset = 0;
+      this.payPeriod = this.availablePeriods.find(p => p.offset === 0)?.period ?? null;
       if (this.payPeriod) {
         this.loadPayPeriodData();
       } else {
@@ -189,13 +219,48 @@ export class DashboardComponent implements OnInit {
     }
   }
 
+  selectPeriod(offset: number): void {
+    this.selectedPeriodOffset = offset;
+    const found = this.availablePeriods.find(p => p.offset === offset);
+    if (found) {
+      this.payPeriod = found.period;
+      this.loadPayPeriodData();
+    }
+  }
+
+  private buildAvailablePeriods(): void {
+    const labels = ['Current', 'Previous', '2 Periods Ago'];
+    this.availablePeriods = [];
+    for (let i = 0; i >= -2; i--) {
+      const period = this.payPeriodService.getPayPeriodByOffset(i);
+      if (period) {
+        this.availablePeriods.push({ label: labels[-i], offset: i, period });
+      }
+    }
+  }
+
+  selectJob(jobId: number | null): void {
+    this.selectedJobId = jobId;
+    if (this.groupBy === 'payperiod') {
+      this.loadPayPeriodData();
+    } else {
+      this.loadData(this.selectedDays);
+    }
+  }
+
+  selectTag(tagId: number | null): void {
+    this.selectedTagId = tagId;
+    this.applyTagFilter();
+  }
+
   loadData(days: number): void {
     this.selectedDays = days;
     this.isLoading = true;
+    const jobId = this.selectedJobId ?? undefined;
 
     forkJoin({
-      earnings: this.tipService.getDailyEarnings(days, this.groupBy),
-      summary:  this.tipService.getDashboardSummary(days),
+      earnings: this.tipService.getDailyEarnings(days, this.groupBy, jobId),
+      summary:  this.tipService.getDashboardSummary(days, jobId),
     }).subscribe({
       next: ({ earnings, summary }) => this.applyData(earnings, summary),
       error: (err) => {
@@ -209,10 +274,11 @@ export class DashboardComponent implements OnInit {
     if (!this.payPeriod) return;
     this.isLoading = true;
     const { startDate, endDate } = this.payPeriod;
+    const jobId = this.selectedJobId ?? undefined;
 
     forkJoin({
-      earnings: this.tipService.getDailyEarningsByDateRange(startDate, endDate, 'day'),
-      summary:  this.tipService.getDashboardSummaryByDateRange(startDate, endDate),
+      earnings: this.tipService.getDailyEarningsByDateRange(startDate, endDate, 'day', jobId),
+      summary:  this.tipService.getDashboardSummaryByDateRange(startDate, endDate, jobId),
     }).subscribe({
       next: ({ earnings, summary }) => this.applyData(earnings, summary),
       error: (err) => {
@@ -225,6 +291,7 @@ export class DashboardComponent implements OnInit {
   private applyData(earnings: any[], summary: any): void {
     this.rawData = earnings;
     this.summary = summary;
+    this.filteredSummary = summary;
 
     this.chartData = {
       ...this.chartData,
@@ -234,6 +301,8 @@ export class DashboardComponent implements OnInit {
         { ...this.chartData.datasets[1], data: earnings.map((d: any) => d.cashTips)    },
         { ...this.chartData.datasets[2], data: earnings.map((d: any) => d.creditTips)  },
         { ...this.chartData.datasets[3], data: earnings.map((d: any) => d.netEarnings) },
+        // Phase 2 (P2-006): gross tips before tip-out deductions
+        { ...this.chartData.datasets[4], data: earnings.map((d: any) => d.grossTips ?? d.totalTips) },
       ],
     };
 
@@ -245,9 +314,51 @@ export class DashboardComponent implements OnInit {
       this.chart?.chart?.update();
     });
 
+    // Fetch full entries for tag-filtered summary (P2-016)
+    const user = this.authService.getUser();
+    if (user?.id) {
+      const end   = new Date().toISOString().split('T')[0];
+      const start = new Date(Date.now() - (this.selectedDays - 1) * 86400000).toISOString().split('T')[0];
+      this.reportService.getReportSummary(user.id, start, end).subscribe({
+        next: (report) => {
+          this.rawEntries = report.tipEntries ?? [];
+          this.applyTagFilter();
+        },
+        error: () => {}
+      });
+    }
+
     this.updateStats();
     this.updateBreakdown();
     this.isLoading = false;
+  }
+
+  /** P2-016: recomputes filteredSummary from rawEntries filtered by selectedTagId. */
+  private applyTagFilter(): void {
+    if (!this.selectedTagId || !this.rawEntries.length) {
+      this.filteredSummary = this.summary;
+      return;
+    }
+    const entries = this.rawEntries.filter((e: any) =>
+      e.tags?.some((t: any) => t.id === this.selectedTagId)
+    );
+    const gross      = entries.reduce((s: number, e: any) => s + (e.amount ?? 0), 0);
+    const tipOut     = entries.reduce((s: number, e: any) => s + (e.totalTipOut ?? 0), 0);
+    const net        = entries.reduce((s: number, e: any) => s + (e.netTips ?? e.amount ?? 0), 0);
+    const shifts     = entries.length;
+    const avgPerShift = shifts > 0 ? gross / shifts : 0;
+    const hours      = entries.reduce((s: number, e: any) => s + (e.hoursWorked ?? 0), 0);
+    const hourly     = hours > 0 ? gross / hours : 0;
+    this.filteredSummary = {
+      totalTips: gross,
+      grossTips: gross,
+      netEarnings: net,
+      shiftsWorked: shifts,
+      avgTipsPerShift: avgPerShift,
+      totalHoursWorked: hours,
+      estimatedHourlyWage: hourly,
+      totalTipOut: tipOut,
+    };
   }
 
   setMetric(key: string): void {

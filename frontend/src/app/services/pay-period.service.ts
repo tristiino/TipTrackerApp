@@ -30,6 +30,30 @@ export class PayPeriodService {
   }
 
   /**
+   * Computes a pay period by offset from the current one.
+   * offset=0 → current period, offset=-1 → previous, offset=-2 → two periods ago.
+   */
+  getPayPeriodByOffset(offset: number): PayPeriod | null {
+    const config = this.getConfig();
+    if (!config || !config.startAnchor || config.lengthDays <= 0) return null;
+
+    const anchor = new Date(config.startAnchor + 'T00:00:00');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const msPerDay = 24 * 60 * 60 * 1000;
+    const daysSinceAnchor = Math.floor((today.getTime() - anchor.getTime()) / msPerDay);
+    const periodsElapsed = daysSinceAnchor < 0 ? 0 : Math.floor(daysSinceAnchor / config.lengthDays);
+
+    const targetPeriod = periodsElapsed + offset;
+    if (targetPeriod < 0) return null;
+
+    const start = this.addDays(config.startAnchor, targetPeriod * config.lengthDays);
+    const end = this.addDays(start, config.lengthDays - 1);
+    return { startDate: start, endDate: end };
+  }
+
+  /**
    * Computes which pay-cycle window contains today based on the stored config.
    * Steps forward from the anchor in increments of lengthDays until reaching
    * the current period — no manual update needed when a cycle rolls over.

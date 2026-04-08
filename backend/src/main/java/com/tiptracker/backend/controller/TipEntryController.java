@@ -4,7 +4,7 @@ import com.tiptracker.backend.dto.DailyEarningsDTO;
 import com.tiptracker.backend.dto.DashboardSummaryDTO;
 import com.tiptracker.backend.dto.ReportSummaryDTO;
 import com.tiptracker.backend.dto.TipEntryDTO;
-import com.tiptracker.backend.model.TipEntry;
+import com.tiptracker.backend.dto.TipEntryRequest;
 import com.tiptracker.backend.service.TipEntryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -28,13 +28,12 @@ public class TipEntryController {
 
     /**
      * Creates a new tip entry for the currently authenticated user.
-     * @param tip The TipEntry object from the request body.
-     * @param principal The currently authenticated user, provided by Spring Security.
-     * @return The saved TipEntry object.
+     * Accepts TipEntryRequest (includes tipOutRoleIds) and returns TipEntryDTO
+     * (includes the resolved tip-out records and net tips).
      */
     @PostMapping
-    public TipEntry addTip(@RequestBody TipEntry tip, Principal principal) {
-        return service.saveTip(tip, principal.getName());
+    public ResponseEntity<TipEntryDTO> addTip(@RequestBody TipEntryRequest request, Principal principal) {
+        return ResponseEntity.status(201).body(service.saveTip(request, principal.getName()));
     }
 
     /**
@@ -71,8 +70,9 @@ public class TipEntryController {
             @RequestParam(required = false) Integer days,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) Long jobId,
             Principal principal) {
-        return ResponseEntity.ok(service.getDashboardSummary(principal.getName(), days, startDate, endDate));
+        return ResponseEntity.ok(service.getDashboardSummary(principal.getName(), days, startDate, endDate, jobId));
     }
 
     /**
@@ -92,8 +92,9 @@ public class TipEntryController {
             @RequestParam(defaultValue = "day") String groupBy,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) Long jobId,
             Principal principal) {
-        return ResponseEntity.ok(service.getDailyEarnings(principal.getName(), days, groupBy, startDate, endDate));
+        return ResponseEntity.ok(service.getDailyEarnings(principal.getName(), days, groupBy, startDate, endDate, jobId));
     }
 
     /**
@@ -108,13 +109,13 @@ public class TipEntryController {
 
     /**
      * Updates an existing tip entry.
-     * @param id The ID of the tip entry to update.
-     * @param tipDetails The updated tip entry data from the request body.
-     * @return The updated TipEntry object.
+     * Clears and re-applies tip-out records based on the new tipOutRoleIds selection.
+     * Returns TipEntryDTO with the updated tip-out breakdown.
      */
     @PutMapping("/{id}")
-    public TipEntry updateTip(@PathVariable Long id, @RequestBody TipEntry tipDetails) {
-        return service.updateTip(id, tipDetails);
+    public ResponseEntity<TipEntryDTO> updateTip(@PathVariable Long id,
+                                                  @RequestBody TipEntryRequest request) {
+        return ResponseEntity.ok(service.updateTip(id, request));
     }
 
     /**
