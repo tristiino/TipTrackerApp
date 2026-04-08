@@ -72,7 +72,7 @@
         </thead>
         <tbody>
         <ng-container *ngFor="let entry of filteredEntries">
-          <tr [class.has-notes]="entry.notes" [class.expanded]="expandedEntryId === entry.id" (click)="toggleExpand(entry.id, !!entry.notes)">
+          <tr [class.has-notes]="entry.notes || entry.tags?.length" [class.expanded]="expandedEntryId === entry.id" (click)="toggleExpand(entry.id, !!(entry.notes || entry.tags?.length))">
             <td>{{ entry.date | date: 'mediumDate' }}</td>
             <td>{{ entry.amount | currency }}</td>
             <td>{{ (entry.totalTipOut ?? entry.tipShare ?? 0) | currency }}</td>
@@ -87,11 +87,15 @@
               <button class="btn-icon btn-delete" (click)="deleteTip(entry.id)" title="Delete"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></button>
             </td>
           </tr>
-          <tr *ngIf="expandedEntryId === entry.id && entry.notes" class="detail-row">
+          <tr *ngIf="expandedEntryId === entry.id && (entry.notes || entry.tags?.length)" class="detail-row">
             <td colspan="7">
-              <div class="note-detail">
+              <div class="note-detail" *ngIf="entry.notes">
                 <span class="note-label">Note:</span>
                 <span class="note-text">{{ entry.notes }}</span>
+              </div>
+              <div class="tag-detail" *ngIf="entry.tags?.length">
+                <span class="note-label">Tags:</span>
+                <span class="report-tag-chip" *ngFor="let tag of entry.tags">{{ tag.name }}</span>
               </div>
             </td>
           </tr>

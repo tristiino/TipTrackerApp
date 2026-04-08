@@ -2,10 +2,12 @@ package com.tiptracker.backend.service;
 
 import com.tiptracker.backend.dto.*;
 import com.tiptracker.backend.model.Job;
+import com.tiptracker.backend.model.Tag;
 import com.tiptracker.backend.model.TipEntry;
 import com.tiptracker.backend.model.TipOutRecord;
 import com.tiptracker.backend.model.User;
 import com.tiptracker.backend.repository.JobRepository;
+import com.tiptracker.backend.repository.TagRepository;
 import com.tiptracker.backend.repository.TipEntryRepository;
 import com.tiptracker.backend.repository.TipOutRecordRepository;
 import com.tiptracker.backend.repository.UserRepository;
@@ -39,8 +41,10 @@ public class TipEntryService {
     private final TipOutRecordRepository tipOutRecordRepository;
     private final UserRepository userRepository;
     private final JobRepository jobRepository;
+    private final TagRepository tagRepository;
     private final SettingsService settingsService;
     private final TipOutService tipOutService;
+    private final TagService tagService;
 
     private static final double DEFAULT_TAX_RATE = 0.03;
 
@@ -299,6 +303,12 @@ public class TipEntryService {
         } else {
             tip.setJob(null);
         }
+
+        // P2-014: Resolve and apply tags (scoped to the shift's owner)
+        Long userId = tip.getUser().getId();
+        List<Tag> resolvedTags = tagService.resolveTagsForUser(req.getTagIds(), userId);
+        tip.getTags().clear();
+        tip.getTags().addAll(resolvedTags);
     }
 
     /**
@@ -327,6 +337,13 @@ public class TipEntryService {
             dto.setJobId(tip.getJob().getId());
             dto.setJobName(tip.getJob().getName());
         }
+
+        // P2-014: map tags
+        List<TagDTO> tagDTOs = tip.getTags().stream()
+                .map(t -> new TagDTO(t.getId(), t.getName()))
+                .collect(Collectors.toList());
+        dto.setTags(tagDTOs);
+
         return dto;
     }
 

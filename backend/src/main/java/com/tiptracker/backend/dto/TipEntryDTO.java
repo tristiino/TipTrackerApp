@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Data Transfer Object for representing a single tip entry in a report.
@@ -51,4 +52,9 @@ public class TipEntryDTO {
     /** The job this shift was logged against. Null if unassigned. */
     private Long jobId;
     private String jobName;
+
+    // --- Phase 2 Sprint 3: Tags ---
+
+    /** Tags applied to this shift. Empty list if none. P2-014. */
+    private List<TagDTO> tags = new ArrayList<>();
 }

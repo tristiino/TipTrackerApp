@@ -6,6 +6,8 @@ import { TipOutRoleService } from '../../services/tip-out-role.service';
 import { TipOutRole } from '../../models/tip-out-role.model';
 import { JobService } from '../../services/job.service';
 import { Job } from '../../models/job.model';
+import { TagService } from '../../services/tag.service';
+import { Tag } from '../../models/tag.model';
 
 @Component({
   selector: 'app-tip-entry-form',
@@ -31,11 +33,19 @@ export class TipEntryFormComponent implements OnInit {
   selectedJobId: number | null = null;
   private readonly LAST_JOB_KEY = 'lastUsedJobId';
 
+  // --- Phase 2 Sprint 3: Tag fields (P2-014) ---
+  allTags: Tag[] = [];          // all tags the user has ever created
+  selectedTags: Tag[] = [];     // tags applied to this shift
+  tagInputValue = '';           // what the user is typing
+  tagSuggestions: Tag[] = [];   // filtered autocomplete list
+  showSuggestions = false;
+
   constructor(
     private fb: FormBuilder,
     private tipService: TipService,
     private tipOutRoleService: TipOutRoleService,
     private jobService: JobService,
+    private tagService: TagService,
     private route: ActivatedRoute,
     private router: Router
   ) {
@@ -168,6 +178,23 @@ export class TipEntryFormComponent implements OnInit {
       },
       error: () => {}
     });
+
+    // P2-014: load user's tags
+    this.tagService.getTags().subscribe({
+      next: (tags) => {
+        this.allTags = tags;
+        // Pre-select tags in edit mode
+        if (this.isEditMode) {
+          const tip = history.state?.tip;
+          if (tip?.tags?.length) {
+            this.selectedTags = tip.tags.filter((t: Tag) =>
+              this.allTags.some(at => at.id === t.id)
+            );
+          }
+        }
+      },
+      error: () => {}
+    });
   }
 
   private prefillFromTip(tip: any): void {
@@ -215,7 +242,8 @@ export class TipEntryFormComponent implements OnInit {
     const payload = {
       ...this.tipForm.value,
       tipOutRoleIds: this.selectedRoleIds,
-      jobId: this.selectedJobId ?? undefined
+      jobId: this.selectedJobId ?? undefined,
+      tagIds: this.selectedTags.map(t => t.id)
     };
 
     const request$ = this.isEditMode && this.editId != null
@@ -238,6 +266,8 @@ export class TipEntryFormComponent implements OnInit {
           this.tipForm.reset({ date: new Date().toISOString().split('T')[0], startTime: '', endTime: '' });
           this.selectedRoleIds = [];
           this.selectedJobId = null;
+          this.selectedTags = [];
+          this.tagInputValue = '';
           this.loadRecentTips();
           setTimeout(() => this.submissionMessage = null, 3000);
         }
@@ -248,6 +278,73 @@ export class TipEntryFormComponent implements OnInit {
         setTimeout(() => this.submissionMessage = null, 3000);
       }
     });
+  }
+
+  // --- P2-014: Tag input methods ---
+
+  onTagInput(): void {
+    const val = this.tagInputValue.trim().toLowerCase();
+    if (val) {
+      this.tagSuggestions = this.allTags.filter(t =>
+        t.name.toLowerCase().includes(val) &&
+        !this.selectedTags.some(st => st.id === t.id)
+      );
+      this.showSuggestions = true;
+    } else {
+      this.tagSuggestions = [];
+      this.showSuggestions = false;
+    }
+  }
+
+  onTagKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter' || event.key === ',') {
+      event.preventDefault();
+      this.commitTagInput();
+    } else if (event.key === 'Escape') {
+      this.showSuggestions = false;
+    }
+  }
+
+  selectSuggestion(tag: Tag): void {
+    if (!this.selectedTags.some(t => t.id === tag.id)) {
+      this.selectedTags.push(tag);
+    }
+    this.tagInputValue = '';
+    this.tagSuggestions = [];
+    this.showSuggestions = false;
+  }
+
+  commitTagInput(): void {
+    const name = this.tagInputValue.trim();
+    if (!name) return;
+
+    // Check if exact match exists in allTags
+    const existing = this.allTags.find(t => t.name.toLowerCase() === name.toLowerCase());
+    if (existing) {
+      this.selectSuggestion(existing);
+      return;
+    }
+
+    // Create a new tag via the API
+    this.tagService.createTag(name).subscribe({
+      next: (newTag) => {
+        this.allTags.push(newTag);
+        this.selectedTags.push(newTag);
+        this.tagInputValue = '';
+        this.tagSuggestions = [];
+        this.showSuggestions = false;
+      },
+      error: () => {}
+    });
+  }
+
+  removeTag(tag: Tag): void {
+    this.selectedTags = this.selectedTags.filter(t => t.id !== tag.id);
+  }
+
+  hideSuggestionsDelayed(): void {
+    // Delay so click on suggestion fires first
+    setTimeout(() => { this.showSuggestions = false; }, 150);
   }
 
   onCancel(): void {

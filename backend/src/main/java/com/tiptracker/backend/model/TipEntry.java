@@ -9,6 +9,8 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Represents a single Tip Entry entity in the database,
@@ -95,5 +97,18 @@ public class TipEntry {
      */
     @OneToMany(mappedBy = "tipEntry", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TipOutRecord> tipOutRecords = new ArrayList<>();
+
+    /**
+     * User-defined tags applied to this shift.
+     * ManyToMany: a tag can be applied to many shifts, a shift can have many tags.
+     * P2-014: Shift Notes, Tags & Search
+     */
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "tip_entry_tags",
+        joinColumns = @JoinColumn(name = "tip_entry_id"),
+        inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private Set<Tag> tags = new HashSet<>();
 
 }

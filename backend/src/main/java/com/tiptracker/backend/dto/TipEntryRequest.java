@@ -41,4 +41,10 @@ public class TipEntryRequest {
 
     /** Optional job profile this shift belongs to. Null = unassigned. */
     private Long jobId;
+
+    /**
+     * IDs of tags to apply to this shift. P2-014.
+     * Empty = no tags. Tags must belong to the authenticated user.
+     */
+    private List<Long> tagIds = new ArrayList<>();
 }

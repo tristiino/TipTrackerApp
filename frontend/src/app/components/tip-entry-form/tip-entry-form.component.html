@@ -102,6 +102,39 @@
         <textarea id="notes" formControlName="notes" placeholder="Optional notes"></textarea>
       </div>
 
+      <!-- Tags (P2-014) -->
+      <div class="form-group">
+        <label>
+          <svg width="20" height="20" viewBox="0 0 24 24"><path fill="currentColor" d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58s1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41s-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z"/></svg>
+          Tags <span class="optional-label">(optional)</span>
+        </label>
+        <div class="tag-input-area">
+          <div class="tag-chips">
+            <span class="tag-chip" *ngFor="let tag of selectedTags">
+              {{ tag.name }}
+              <button type="button" class="tag-chip-remove" (click)="removeTag(tag)" aria-label="Remove tag">×</button>
+            </span>
+            <div class="tag-input-wrapper">
+              <input
+                type="text"
+                class="tag-text-input"
+                placeholder="{{ selectedTags.length === 0 ? 'Add tags…' : '' }}"
+                [(ngModel)]="tagInputValue"
+                [ngModelOptions]="{standalone: true}"
+                (input)="onTagInput()"
+                (keydown)="onTagKeydown($event)"
+                (blur)="hideSuggestionsDelayed()"
+                autocomplete="off"
+              />
+              <ul class="tag-suggestions" *ngIf="showSuggestions && tagSuggestions.length > 0">
+                <li *ngFor="let s of tagSuggestions" (mousedown)="selectSuggestion(s)">{{ s.name }}</li>
+              </ul>
+            </div>
+          </div>
+          <p class="tag-hint" *ngIf="selectedTags.length === 0">Press Enter or comma to add a tag. Type to search existing tags.</p>
+        </div>
+      </div>
+
       <!-- Tip-Out Roles (P2-001, P2-002, P2-003) — filtered by job (P2-011) -->
       <div class="form-group" *ngIf="filteredRoles.length > 0">
         <label>
