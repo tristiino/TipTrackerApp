@@ -8,6 +8,7 @@ import { JobService } from '../../services/job.service';
 import { Job } from '../../models/job.model';
 import { TagService } from '../../services/tag.service';
 import { Tag } from '../../models/tag.model';
+import { PayPeriodService } from '../../services/pay-period.service';
 import { saveAs } from 'file-saver';
 
 
@@ -30,10 +31,52 @@ export class ReportsComponent implements OnInit {
   // P2-013: expandable row for full note detail
   expandedEntryId: number | null = null;
 
+  // P2-018: calendar view toggle — persisted in localStorage
+  private readonly VIEW_MODE_KEY = 'reportsViewMode';
+  viewMode: 'table' | 'calendar' = (localStorage.getItem('reportsViewMode') as 'table' | 'calendar') ?? 'calendar';
+
+  setViewMode(mode: 'table' | 'calendar'): void {
+    this.viewMode = mode;
+    localStorage.setItem(this.VIEW_MODE_KEY, mode);
+  }
+
+  get calendarDays(): { date: string; entries: any[] }[] {
+    if (!this.report?.tipEntries) return [];
+
+    // Build a map of date → entries from filteredEntries
+    const map = new Map<string, any[]>();
+    for (const e of this.filteredEntries) {
+      const d = e.date;
+      if (!map.has(d)) map.set(d, []);
+      map.get(d)!.push(e);
+    }
+
+    // Walk every day in the range
+    const days: { date: string; entries: any[] }[] = [];
+    const start = new Date(this.startDate + 'T00:00:00');
+    const end   = new Date(this.endDate   + 'T00:00:00');
+    for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+      const key = d.toISOString().split('T')[0];
+      days.push({ date: key, entries: map.get(key) ?? [] });
+    }
+    return days;
+  }
+
+  /** Returns the offset (0=Sun … 6=Sat) of the first day so the grid aligns correctly. */
+  get calendarStartOffset(): number {
+    if (!this.startDate) return 0;
+    return new Date(this.startDate + 'T00:00:00').getDay();
+  }
+
+  sumNetTips(entries: any[]): number {
+    return entries.reduce((s, e) => s + (e.netTips ?? e.amount ?? 0), 0);
+  }
+
   // P2-015: keyword + tag search
   searchKeyword = '';
   filterTagId: number | null = null;
   allTags: Tag[] = [];
+
 
   get filteredEntries(): any[] {
     if (!this.report?.tipEntries) return [];
@@ -71,14 +114,21 @@ export class ReportsComponent implements OnInit {
     private tipOutRoleService: TipOutRoleService,
     private jobService: JobService,
     private tagService: TagService,
+    private payPeriodService: PayPeriodService,
     private router: Router
   ) {
-    // Set a default date range for the last 14 days.
-    const today = new Date();
-    const lastWeek = new Date();
-    lastWeek.setDate(today.getDate() - 14);
-    this.endDate = today.toISOString().split('T')[0];
-    this.startDate = lastWeek.toISOString().split('T')[0];
+    // Use the current pay period if configured, otherwise fall back to last 14 days.
+    const payPeriod = this.payPeriodService.getCurrentPayPeriod();
+    if (payPeriod) {
+      this.startDate = payPeriod.startDate;
+      this.endDate = payPeriod.endDate;
+    } else {
+      const today = new Date();
+      const twoWeeksAgo = new Date();
+      twoWeeksAgo.setDate(today.getDate() - 14);
+      this.endDate = today.toISOString().split('T')[0];
+      this.startDate = twoWeeksAgo.toISOString().split('T')[0];
+    }
   }
 
   /**

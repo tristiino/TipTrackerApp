@@ -124,7 +124,116 @@
 }
 
 .entries-card {
-  h3 { margin-bottom: 1rem; }
+  .entries-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    h3 { margin: 0; }
+  }
+
+  .view-toggle {
+    display: flex;
+    gap: 0.25rem;
+    button {
+      background: none;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.35rem 0.5rem;
+      cursor: pointer;
+      color: var(--text-light);
+      line-height: 0;
+      transition: all 0.15s;
+      &.active {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: #fff;
+      }
+      &:hover:not(.active) {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+      }
+    }
+  }
+
+  // Calendar view
+  .calendar-view {
+    .calendar-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin-bottom: 4px;
+      span {
+        text-align: center;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-light);
+        padding: 0.25rem 0;
+      }
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .calendar-cell {
+      min-height: 80px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.4rem 0.5rem;
+      background: var(--surface-color);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+
+      &--empty {
+        background: transparent;
+        border-color: transparent;
+      }
+
+      &--has-entry {
+        background: color-mix(in srgb, var(--primary-color) 8%, var(--surface-color));
+        border-color: color-mix(in srgb, var(--primary-color) 25%, var(--border-color));
+        cursor: pointer;
+        &:hover {
+          border-color: var(--primary-color);
+          background: color-mix(in srgb, var(--primary-color) 14%, var(--surface-color));
+        }
+      }
+
+      &--multi { cursor: default; }
+
+      .cal-day-number {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--text-light);
+      }
+      .cal-amount {
+        font-size: 0.9rem;
+        font-weight: 700;
+        color: var(--primary-color);
+      }
+      .cal-shift {
+        font-size: 0.72rem;
+        color: var(--text-light);
+      }
+      .cal-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 2px;
+        margin-top: 2px;
+      }
+      .cal-tag {
+        font-size: 0.65rem;
+        background: var(--primary-color);
+        color: #fff;
+        border-radius: 999px;
+        padding: 1px 6px;
+      }
+    }
+  }
   table {
     width: 100%;
     border-collapse: collapse;
