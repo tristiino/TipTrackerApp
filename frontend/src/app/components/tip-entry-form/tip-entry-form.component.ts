@@ -8,6 +8,7 @@ import { JobService } from '../../services/job.service';
 import { Job } from '../../models/job.model';
 import { TagService } from '../../services/tag.service';
 import { Tag } from '../../models/tag.model';
+import { localDateString } from '../../utils/date.utils';
 
 @Component({
   selector: 'app-tip-entry-form',
@@ -52,7 +53,7 @@ export class TipEntryFormComponent implements OnInit {
     this.tipForm = this.fb.group({
       cashTips:    ['', [Validators.required, Validators.min(0)]],
       creditTips:  ['', [Validators.required, Validators.min(0)]],
-      date:        [new Date().toISOString().split('T')[0], [Validators.required]],
+      date:        [localDateString(), [Validators.required]],
       shiftType:   ['', [Validators.required]],
       notes:       [''],
       startTime:   [''],
@@ -263,7 +264,7 @@ export class TipEntryFormComponent implements OnInit {
           this.router.navigate(['/reports']);
         } else {
           this.submissionMessage = 'Tip submitted successfully!';
-          this.tipForm.reset({ date: new Date().toISOString().split('T')[0], startTime: '', endTime: '' });
+          this.tipForm.reset({ date: localDateString(), startTime: '', endTime: '' });
           this.selectedRoleIds = [];
           this.selectedJobId = null;
           this.selectedTags = [];
@@ -351,7 +352,7 @@ export class TipEntryFormComponent implements OnInit {
     if (this.isEditMode) {
       this.router.navigate(['/reports']);
     } else {
-      this.tipForm.reset({ date: new Date().toISOString().split('T')[0], startTime: '', endTime: '' });
+      this.tipForm.reset({ date: localDateString(), startTime: '', endTime: '' });
     }
   }
 }

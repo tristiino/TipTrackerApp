@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { ReportService } from 'src/app/services/report.service';
 import { AuthService } from 'src/app/services/auth.service';
 import { TipService } from 'src/app/services/tip.service';
+import { localDateString } from 'src/app/utils/date.utils';
 import { TipOutRoleService } from '../../services/tip-out-role.service';
 import { JobService } from '../../services/job.service';
 import { Job } from '../../models/job.model';
@@ -56,7 +57,7 @@ export class ReportsComponent implements OnInit {
     const start = new Date(this.startDate + 'T00:00:00');
     const end   = new Date(this.endDate   + 'T00:00:00');
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-      const key = d.toISOString().split('T')[0];
+      const key = localDateString(d);
       days.push({ date: key, entries: map.get(key) ?? [] });
     }
     return days;
@@ -126,8 +127,8 @@ export class ReportsComponent implements OnInit {
       const today = new Date();
       const twoWeeksAgo = new Date();
       twoWeeksAgo.setDate(today.getDate() - 14);
-      this.endDate = today.toISOString().split('T')[0];
-      this.startDate = twoWeeksAgo.toISOString().split('T')[0];
+      this.endDate = localDateString(today);
+      this.startDate = localDateString(twoWeeksAgo);
     }
   }
 

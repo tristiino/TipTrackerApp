@@ -10,6 +10,7 @@ import { TagService } from '../../services/tag.service';
 import { Tag } from '../../models/tag.model';
 import { ReportService } from '../../services/report.service';
 import { AuthService } from '../../services/auth.service';
+import { localDateString } from '../../utils/date.utils';
 
 interface Metric {
   key: string;
@@ -317,8 +318,8 @@ export class DashboardComponent implements OnInit {
     // Fetch full entries for tag-filtered summary (P2-016)
     const user = this.authService.getUser();
     if (user?.id) {
-      const end   = new Date().toISOString().split('T')[0];
-      const start = new Date(Date.now() - (this.selectedDays - 1) * 86400000).toISOString().split('T')[0];
+      const end   = localDateString();
+      const start = localDateString(new Date(Date.now() - (this.selectedDays - 1) * 86400000));
       this.reportService.getReportSummary(user.id, start, end).subscribe({
         next: (report) => {
           this.rawEntries = report.tipEntries ?? [];
