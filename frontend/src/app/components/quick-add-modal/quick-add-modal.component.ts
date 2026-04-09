@@ -175,7 +175,8 @@ export class QuickAddModalComponent implements OnInit {
       startTime: '', endTime: '',
     });
     this.selectedRoleIds = [];
-    this.selectedJobId = null;
+    const lastId = localStorage.getItem(this.LAST_JOB_KEY);
+    this.selectedJobId = (lastId && this.jobs.find(j => j.id === +lastId)) ? +lastId : null;
     this.success = false;
     this.errorMsg = '';
     this.submitting = false;

@@ -52,13 +52,14 @@
         </div>
       </div>
 
-      <!-- Job selector (P2-008) -->
-      <div class="modal-field" *ngIf="jobs.length > 0">
+      <!-- Job selector -->
+      <div class="modal-field">
         <label class="field-label">Job <span class="optional">(optional)</span></label>
-        <select class="modal-select" [(ngModel)]="selectedJobId" [ngModelOptions]="{standalone: true}">
+        <select class="modal-select" [(ngModel)]="selectedJobId" [ngModelOptions]="{standalone: true}" *ngIf="jobs.length > 0">
           <option [ngValue]="null">— Unassigned —</option>
           <option *ngFor="let job of jobs" [ngValue]="job.id">{{ job.name }}<ng-container *ngIf="job.location"> · {{ job.location }}</ng-container></option>
         </select>
+        <a class="setup-link" routerLink="/jobs" (click)="close()" *ngIf="jobs.length === 0">+ Add a job</a>
       </div>
 
       <!-- Shift times (optional) -->
@@ -77,23 +78,31 @@
         <div class="hours-badge" *ngIf="hoursWorked !== null">{{ hoursWorked }}h worked</div>
       </div>
 
-      <!-- Tip-Out Roles (filtered by job — P2-011) -->
-      <div class="modal-field" *ngIf="filteredRoles.length > 0">
+      <!-- Tip-Out Roles (filtered by job) -->
+      <div class="modal-field">
         <label class="field-label">Tip-Outs</label>
-        <div class="tipout-role-list">
-          <label class="tipout-role-option" *ngFor="let role of filteredRoles">
-            <input type="checkbox" [checked]="isRoleSelected(role.id!)" (change)="toggleRole(role.id!)" />
-            <span class="role-label">{{ formatRoleLabel(role) }}</span>
-            <span class="role-preview" *ngIf="isRoleSelected(role.id!) && totalTips > 0">
-              -${{ getRolePreviewAmount(role) | number:'1.2-2' }}
-            </span>
-          </label>
-        </div>
-        <div class="tipout-preview" *ngIf="selectedRoleIds.length > 0 && totalTips > 0">
-          <span>Tip-out: <strong>-${{ estimatedTipOut | number:'1.2-2' }}</strong></span>
-          <span class="preview-separator"> · </span>
-          <span>Your take-home: <strong>${{ estimatedNet | number:'1.2-2' }}</strong></span>
-        </div>
+        <ng-container *ngIf="availableRoles.length > 0; else noRoles">
+          <div class="tipout-role-list" *ngIf="filteredRoles.length > 0; else noFilteredRoles">
+            <label class="tipout-role-option" *ngFor="let role of filteredRoles">
+              <input type="checkbox" [checked]="isRoleSelected(role.id!)" (change)="toggleRole(role.id!)" />
+              <span class="role-label">{{ formatRoleLabel(role) }}</span>
+              <span class="role-preview" *ngIf="isRoleSelected(role.id!) && totalTips > 0">
+                -${{ getRolePreviewAmount(role) | number:'1.2-2' }}
+              </span>
+            </label>
+          </div>
+          <ng-template #noFilteredRoles>
+            <p class="tipout-hint">No tip-out roles for this job.</p>
+          </ng-template>
+          <div class="tipout-preview" *ngIf="selectedRoleIds.length > 0 && totalTips > 0">
+            <span>Tip-out: <strong>-${{ estimatedTipOut | number:'1.2-2' }}</strong></span>
+            <span class="preview-separator"> · </span>
+            <span>Your take-home: <strong>${{ estimatedNet | number:'1.2-2' }}</strong></span>
+          </div>
+        </ng-container>
+        <ng-template #noRoles>
+          <a class="setup-link" routerLink="/tip-out-roles" (click)="close()">+ Set up tip-out roles</a>
+        </ng-template>
       </div>
 
       <!-- Error -->
