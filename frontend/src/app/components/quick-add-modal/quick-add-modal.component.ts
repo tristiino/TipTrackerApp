@@ -53,21 +53,18 @@ export class QuickAddModalComponent implements OnInit {
 
   ngOnInit(): void {
     this.quickAdd.isOpen$.subscribe(open => {
-      if (open) this.resetForm();
-    });
-    this.tipOutRoleService.getRoles().subscribe({
-      next: (roles) => this.availableRoles = roles,
-      error: () => {}
-    });
-    this.jobService.getJobs().subscribe({
-      next: (jobs) => {
-        this.jobs = jobs;
-        const lastId = localStorage.getItem(this.LAST_JOB_KEY);
-        if (lastId && jobs.find(j => j.id === +lastId)) {
-          this.selectedJobId = +lastId;
-        }
-      },
-      error: () => {}
+      if (!open) return;
+      this.tipOutRoleService.getRoles().subscribe({
+        next: (roles) => this.availableRoles = roles,
+        error: () => {}
+      });
+      this.jobService.getJobs().subscribe({
+        next: (jobs) => {
+          this.jobs = jobs;
+          this.resetForm();
+        },
+        error: () => this.resetForm()
+      });
     });
   }
 

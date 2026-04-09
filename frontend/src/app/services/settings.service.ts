@@ -4,6 +4,7 @@ import { Observable, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { ThemeService } from './theme.service';
 import { LanguageService } from './language.service';
+import { PayPeriodService } from './pay-period.service';
 
 export interface UserSettings {
   theme: string;
@@ -23,7 +24,8 @@ export class SettingsService {
   constructor(
     private http: HttpClient,
     private themeService: ThemeService,
-    private languageService: LanguageService
+    private languageService: LanguageService,
+    private payPeriodService: PayPeriodService
   ) {}
 
   /**
@@ -52,6 +54,14 @@ export class SettingsService {
       tap(settings => {
         this.themeService.setTheme(settings.theme);
         this.languageService.setLanguage(settings.language);
+        if (settings.payPeriodStartAnchor && settings.payPeriodLengthDays > 0) {
+          this.payPeriodService.setConfig({
+            startAnchor: settings.payPeriodStartAnchor,
+            lengthDays: settings.payPeriodLengthDays,
+          });
+        } else {
+          this.payPeriodService.clearConfig();
+        }
         this.cacheSettings(settings);
       })
     );
