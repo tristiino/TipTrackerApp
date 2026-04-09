@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { localDateString } from '../utils/date.utils';
 
 /** The computed window for the current pay cycle — consumed by the dashboard and reports. */
 export interface PayPeriod {
@@ -80,6 +81,6 @@ export class PayPeriodService {
   private addDays(dateStr: string, days: number): string {
     const d = new Date(dateStr + 'T00:00:00');
     d.setDate(d.getDate() + days);
-    return d.toISOString().split('T')[0];
+    return localDateString(d);
   }
 }

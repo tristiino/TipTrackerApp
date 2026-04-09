@@ -6,6 +6,7 @@ import { TipOutRoleService } from '../../services/tip-out-role.service';
 import { TipOutRole } from '../../models/tip-out-role.model';
 import { JobService } from '../../services/job.service';
 import { Job } from '../../models/job.model';
+import { localDateString } from '../../utils/date.utils';
 
 @Component({
   selector: 'app-quick-add-modal',
@@ -43,7 +44,7 @@ export class QuickAddModalComponent implements OnInit {
     this.form = this.fb.group({
       cashTips:    ['', [Validators.required, Validators.min(0)]],
       creditTips:  ['', [Validators.required, Validators.min(0)]],
-      date:        [new Date().toISOString().split('T')[0], Validators.required],
+      date:        [localDateString(), Validators.required],
       shiftType:   ['', Validators.required],
       startTime:   [''],
       endTime:     [''],
@@ -168,7 +169,7 @@ export class QuickAddModalComponent implements OnInit {
 
   private resetForm(): void {
     this.form.reset({
-      date: new Date().toISOString().split('T')[0],
+      date: localDateString(),
       startTime: '', endTime: '',
     });
     this.selectedRoleIds = [];
