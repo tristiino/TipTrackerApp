@@ -4,51 +4,70 @@
     <p>Manage your application preferences and defaults.</p>
   </div>
 
-  <div class="settings-card">
-    <form [formGroup]="settingsForm" (ngSubmit)="onSubmit()">
-      <div class="form-group">
-        <label for="taxRate">{{ translations['taxRate'] }}</label>
-        <input type="number" id="taxRate" formControlName="taxRate" min="0" />
-      </div>
-
-      <div class="form-group">
-        <label for="theme">{{ translations['theme'] }}</label>
-        <select id="theme" formControlName="theme" (change)="applyTheme($event)">
-          <option value="light">Light</option>
-          <option value="dark">Dark</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="language">{{ translations['language'] }}</label>
-        <select id="language" formControlName="language" (change)="applyLanguage($event)">
-          <option value="english">English</option>
-          <option value="spanish">Spanish</option>
-        </select>
-      </div>
-
-      <div class="form-group pay-period-group">
-        <label>Pay Period</label>
-        <div class="pay-period-inputs">
-          <div class="pay-period-field">
-            <span class="pay-period-field-label">Cycle Start</span>
-            <input type="date" id="payPeriodStartAnchor" formControlName="payPeriodStartAnchor" />
-          </div>
-          <div class="pay-period-field">
-            <span class="pay-period-field-label">Cycle Length (days)</span>
-            <input type="number" id="payPeriodLengthDays" formControlName="payPeriodLengthDays" min="1" />
-          </div>
-        </div>
-      </div>
-
-      <div class="form-actions">
-        <button type="button" class="btn btn-secondary" (click)="onReset()">{{ translations['reset'] }}</button>
-        <button type="submit" class="btn btn-primary" [disabled]="!settingsForm.valid">{{ translations['save'] }}</button>
-      </div>
-    </form>
+  <div class="settings-tabs">
+    <button class="tab-btn" [class.tab-btn--active]="activeTab === 'general'" (click)="activeTab = 'general'">General</button>
+    <button class="tab-btn" [class.tab-btn--active]="activeTab === 'jobs'" (click)="activeTab = 'jobs'">Jobs</button>
+    <button class="tab-btn" [class.tab-btn--active]="activeTab === 'tipouts'" (click)="activeTab = 'tipouts'">Tip-Outs</button>
   </div>
 
-  <div class="logout-section">
-    <button type="button" class="btn btn-logout" (click)="logout()">Logout</button>
+  <!-- General Tab -->
+  <div *ngIf="activeTab === 'general'">
+    <div class="settings-card">
+      <form [formGroup]="settingsForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="taxRate">{{ translations['taxRate'] }}</label>
+          <input type="number" id="taxRate" formControlName="taxRate" min="0" />
+        </div>
+
+        <div class="form-group">
+          <label for="theme">{{ translations['theme'] }}</label>
+          <select id="theme" formControlName="theme" (change)="applyTheme($event)">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="language">{{ translations['language'] }}</label>
+          <select id="language" formControlName="language" (change)="applyLanguage($event)">
+            <option value="english">English</option>
+            <option value="spanish">Spanish</option>
+          </select>
+        </div>
+
+        <div class="form-group pay-period-group">
+          <label>Pay Period</label>
+          <div class="pay-period-inputs">
+            <div class="pay-period-field">
+              <span class="pay-period-field-label">Cycle Start</span>
+              <input type="date" id="payPeriodStartAnchor" formControlName="payPeriodStartAnchor" />
+            </div>
+            <div class="pay-period-field">
+              <span class="pay-period-field-label">Cycle Length (days)</span>
+              <input type="number" id="payPeriodLengthDays" formControlName="payPeriodLengthDays" min="1" />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" (click)="onReset()">{{ translations['reset'] }}</button>
+          <button type="submit" class="btn btn-primary" [disabled]="!settingsForm.valid">{{ translations['save'] }}</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="logout-section">
+      <button type="button" class="btn btn-logout" (click)="logout()">Logout</button>
+    </div>
+  </div>
+
+  <!-- Jobs Tab -->
+  <div *ngIf="activeTab === 'jobs'">
+    <app-job-manager></app-job-manager>
+  </div>
+
+  <!-- Tip-Outs Tab -->
+  <div *ngIf="activeTab === 'tipouts'">
+    <app-tip-out-role-manager></app-tip-out-role-manager>
   </div>
 </div>
