@@ -17,6 +17,7 @@ export class SettingsComponent implements OnInit {
   settingsForm!: FormGroup;
   translations: { [key: string]: string } = {};
   isSaving = false;
+  activeTab: 'general' | 'jobs' | 'tipouts' = 'general';
 
   constructor(
     private fb: FormBuilder,

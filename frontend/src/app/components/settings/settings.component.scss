@@ -1,4 +1,35 @@
 // Uses global CSS variables from styles.scss for theme consistency
+.settings-tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 0;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 0.6rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-light);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  border-radius: 0;
+  transition: color 0.15s, border-color 0.15s;
+
+  &:hover {
+    color: var(--text-color);
+  }
+
+  &--active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+  }
+}
+
 .settings-header {
   margin-bottom: 2rem;
   h2 { font-size: 2rem; }
