@@ -30,7 +30,7 @@
 
   &:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
 
-  @media (max-width: 390px) {
+  @media (max-width: 400px) {
     flex-wrap: wrap;
     gap: 0.5rem;
   }
@@ -68,7 +68,7 @@
 }
 
 // Narrow viewport: hide badge + source; hide amount only when a job name is shown
-@media (max-width: 390px) {
+@media (max-width: 400px) {
   .role-card__badge,
   .role-card__source {
     display: none;
