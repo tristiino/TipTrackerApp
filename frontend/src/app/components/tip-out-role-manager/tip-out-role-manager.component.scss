@@ -24,17 +24,40 @@
   margin-bottom: 0.5rem;
   background: var(--card-bg, #fff);
   transition: box-shadow 0.15s;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 
   &:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+
+  @media (max-width: 390px) {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
 }
 
 .role-card__info {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
 }
 
-.role-card__name { font-weight: 500; }
+.role-card__name {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
+}
+
+.role-card__job {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100px;
+}
 
 .role-card__badge {
   font-size: 0.75rem;
