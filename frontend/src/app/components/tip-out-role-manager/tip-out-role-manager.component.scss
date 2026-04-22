@@ -44,19 +44,12 @@
   flex: 1;
 }
 
-.role-card__name {
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100px;
-}
+.role-card__name { font-weight: 500; }
 
 .role-card__job {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 100px;
 }
 
 .role-card__badge {
@@ -72,6 +65,19 @@
 .role-card__amount {
   font-weight: 600;
   color: var(--text-primary, #212529);
+}
+
+// Narrow viewport: hide badge + source; hide amount only when a job name is shown
+@media (max-width: 390px) {
+  .role-card__badge,
+  .role-card__source {
+    display: none;
+  }
+
+  // Job name present → amount is redundant, hide it
+  .role-card__info:has(.role-card__job) .role-card__amount {
+    display: none;
+  }
 }
 
 .role-card__actions {
