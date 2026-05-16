@@ -1,15 +1,20 @@
 package com.tiptracker.backend.controller;
 
+import com.tiptracker.backend.dto.ForgotPasswordRequest;
 import com.tiptracker.backend.dto.LoginRequest;
 import com.tiptracker.backend.dto.RegisterRequest;
+import com.tiptracker.backend.dto.ResetPasswordRequest;
 import com.tiptracker.backend.payload.AuthenticationResponse;
+import com.tiptracker.backend.service.AuthenticationService;
+import com.tiptracker.backend.service.PasswordResetService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
-import com.tiptracker.backend.service.AuthenticationService;
+
+import java.util.Map;
 
 /**
  * Controller for handling user authentication processes, including user login and registration.
@@ -22,6 +27,7 @@ import com.tiptracker.backend.service.AuthenticationService;
 public class AuthController {
 
     private final AuthenticationService authenticationService;
+    private final PasswordResetService passwordResetService;
 
     /**
      * Handles user login requests.
@@ -59,6 +65,24 @@ public class AuthController {
         } catch (Exception e) {
             log.error("Registration failed for user: {} - Reason: {}", registerRequest.getEmail(), e.getMessage());
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        log.info("Password reset requested for email: {}", request.getEmail());
+        passwordResetService.initiatePasswordReset(request.getEmail());
+        return ResponseEntity.ok(Map.of("message", "If that email is registered, a reset link has been sent."));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+        try {
+            passwordResetService.resetPassword(request.getToken(), request.getNewPassword());
+            return ResponseEntity.ok(Map.of("message", "Password updated successfully."));
+        } catch (IllegalArgumentException e) {
+            log.warn("Password reset failed: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
 }
