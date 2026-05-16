@@ -14,6 +14,9 @@
       <div class="form-group">
         <label for="password">Password</label>
         <input type="password" id="password" formControlName="password" required placeholder="••••••••" />
+        <div class="forgot-password-link">
+          <a routerLink="/forgot-password">Forgot password?</a>
+        </div>
       </div>
 
       <button type="submit" class="btn-submit" [disabled]="loginForm.invalid">Login</button>

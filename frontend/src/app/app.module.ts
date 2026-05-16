@@ -25,6 +25,8 @@ import { LoginNavBarComponent } from './shared/login-nav-bar/login-nav-bar.compo
 import { TipOutRoleManagerComponent } from './components/tip-out-role-manager/tip-out-role-manager.component';
 import { TipOutBreakdownComponent } from './components/tip-out-breakdown/tip-out-breakdown.component';
 import { JobManagerComponent } from './components/job-manager/job-manager.component';
+import { ForgotPasswordComponent } from './components/auth/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './components/auth/reset-password/reset-password.component';
 
 
 import { AuthInterceptor } from './auth.interceptor';
@@ -46,7 +48,9 @@ import { AuthGuard } from './guards/auth.guard';
     QuickAddModalComponent,
     TipOutRoleManagerComponent,
     TipOutBreakdownComponent,
-    JobManagerComponent
+    JobManagerComponent,
+    ForgotPasswordComponent,
+    ResetPasswordComponent
   ],
   imports: [
     BrowserModule,
