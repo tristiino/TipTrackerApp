@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 /**
  * Data Transfer Object for user settings.
@@ -18,4 +19,7 @@ public class UserSettingsDTO {
     private double taxRate;
     private LocalDate payPeriodStartAnchor;
     private int payPeriodLengthDays;
+    private LocalTime morningStart;
+    private LocalTime eveningStart;
+    private LocalTime nightStart;
 }

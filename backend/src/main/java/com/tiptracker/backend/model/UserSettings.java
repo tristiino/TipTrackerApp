@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 /**
  * Stores per-user application settings.
@@ -37,4 +38,13 @@ public class UserSettings {
     private LocalDate payPeriodStartAnchor;
 
     private int payPeriodLengthDays;
+
+    @Column(nullable = true)
+    private LocalTime morningStart;
+
+    @Column(nullable = true)
+    private LocalTime eveningStart;
+
+    @Column(nullable = true)
+    private LocalTime nightStart;
 }
