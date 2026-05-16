@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import java.time.LocalTime;
 
 /**
  * Service for reading and updating per-user application settings.
@@ -53,6 +54,9 @@ public class SettingsService {
         settings.setTaxRate(dto.getTaxRate());
         settings.setPayPeriodStartAnchor(dto.getPayPeriodStartAnchor());
         settings.setPayPeriodLengthDays(dto.getPayPeriodLengthDays());
+        settings.setMorningStart(dto.getMorningStart());
+        settings.setEveningStart(dto.getEveningStart());
+        settings.setNightStart(dto.getNightStart());
 
         return toDTO(userSettingsRepository.save(settings));
     }
@@ -66,6 +70,9 @@ public class SettingsService {
         defaults.setTaxRate(0.03);
         defaults.setPayPeriodStartAnchor(null);
         defaults.setPayPeriodLengthDays(14);
+        defaults.setMorningStart(LocalTime.of(6, 0));
+        defaults.setEveningStart(LocalTime.of(14, 0));
+        defaults.setNightStart(LocalTime.of(21, 0));
         return userSettingsRepository.save(defaults);
     }
 
@@ -75,12 +82,15 @@ public class SettingsService {
     }
 
     private UserSettingsDTO toDTO(UserSettings settings) {
-        return new UserSettingsDTO(
-                settings.getTheme(),
-                settings.getLanguage(),
-                settings.getTaxRate(),
-                settings.getPayPeriodStartAnchor(),
-                settings.getPayPeriodLengthDays()
-        );
+        UserSettingsDTO dto = new UserSettingsDTO();
+        dto.setTheme(settings.getTheme());
+        dto.setLanguage(settings.getLanguage());
+        dto.setTaxRate(settings.getTaxRate());
+        dto.setPayPeriodStartAnchor(settings.getPayPeriodStartAnchor());
+        dto.setPayPeriodLengthDays(settings.getPayPeriodLengthDays());
+        dto.setMorningStart(settings.getMorningStart());
+        dto.setEveningStart(settings.getEveningStart());
+        dto.setNightStart(settings.getNightStart());
+        return dto;
     }
 }
