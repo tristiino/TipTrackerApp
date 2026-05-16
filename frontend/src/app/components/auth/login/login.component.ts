@@ -35,10 +35,12 @@ export class LoginComponent implements OnInit {
    * to form value changes so the error message clears while the user types.
    */
   ngOnInit(): void {
-    // Show success banner when redirected after successful registration
+    // Show success banner when redirected after successful registration or password reset
     this.route.queryParams.subscribe(params => {
       if (params['registered'] === 'true') {
         this.successMessage = 'Account created successfully! Please log in.';
+      } else if (params['passwordReset'] === 'true') {
+        this.successMessage = 'Password reset successfully. Please log in.';
       }
     });
 
