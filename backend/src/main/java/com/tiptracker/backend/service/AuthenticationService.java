@@ -52,7 +52,7 @@ public class AuthenticationService {
                 )
         );
 
-        String jwt = jwtUtil.generateToken(user);
+        String jwt = jwtUtil.generateToken(user, loginRequest.getClientType());
         UserDto userDto = new UserDto(user.getId(), user.getEmail(), user.getUsername());
 
         return new AuthenticationResponse(jwt, userDto);
