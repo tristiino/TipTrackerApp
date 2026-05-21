@@ -46,15 +46,23 @@ public class JwtUtil {
      * @param user The user for whom the token is being generated.
      * @return A signed JWT string.
      */
+    private static final long IOS_EXPIRATION_TIME = 365L * 24 * 60 * 60 * 1000;
+
     public String generateToken(User user) {
+        return generateToken(user, null);
+    }
+
+    public String generateToken(User user, String clientType) {
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("role", user.getRole().name());
+
+        long expiry = "ios".equals(clientType) ? IOS_EXPIRATION_TIME : expirationTime;
 
         return Jwts.builder()
                 .setClaims(extraClaims)
                 .setSubject(user.getEmail())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
+                .setExpiration(new Date(System.currentTimeMillis() + expiry))
                 .signWith(signingKey, SignatureAlgorithm.HS256)
                 .compact();
     }
