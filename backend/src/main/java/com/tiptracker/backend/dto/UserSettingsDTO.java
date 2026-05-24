@@ -22,4 +22,7 @@ public class UserSettingsDTO {
     private LocalTime morningStart;
     private LocalTime eveningStart;
     private LocalTime nightStart;
+    private boolean notificationsEnabled;
+    private Integer reminderDayOfWeek;
+    private LocalTime reminderTime;
 }
