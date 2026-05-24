@@ -96,6 +96,12 @@
 			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>com.eatthepath</groupId>
+			<artifactId>pushy</artifactId>
+			<version>0.15.4</version>
+		</dependency>
+
     </dependencies>
 
 	<build>

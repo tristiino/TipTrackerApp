@@ -72,4 +72,19 @@ public interface TipEntryRepository extends JpaRepository<TipEntry, Long> {
      * Finds the 7 most recent tip entries for a specific user, ordered by date descending.
      */
     List<TipEntry> findTop7ByUserOrderByDateDesc(User user);
+
+    /**
+     * Sums cash + credit tips for a user within a date range.
+     * Used by the push notification scheduler to personalize the weekly reminder message.
+     * Returns 0 if the user has no entries in the range.
+     */
+    @Query("SELECT COALESCE(SUM(COALESCE(t.cashTips, 0.0) + COALESCE(t.creditTips, 0.0)), 0) FROM TipEntry t " +
+           "WHERE t.user.id = :userId " +
+           "AND t.date >= :weekStart " +
+           "AND t.date < :weekEnd")
+    java.math.BigDecimal sumTipsForUserBetween(
+            @Param("userId") Long userId,
+            @Param("weekStart") LocalDate weekStart,
+            @Param("weekEnd") LocalDate weekEnd
+    );
 }

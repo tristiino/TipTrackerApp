@@ -47,4 +47,13 @@ public class UserSettings {
 
     @Column(nullable = true)
     private LocalTime nightStart;
+
+    @Column(name = "notifications_enabled", nullable = false)
+    private boolean notificationsEnabled = false;
+
+    @Column(name = "reminder_day_of_week")
+    private Integer reminderDayOfWeek = 0;
+
+    @Column(name = "reminder_time")
+    private LocalTime reminderTime = LocalTime.of(18, 0);
 }

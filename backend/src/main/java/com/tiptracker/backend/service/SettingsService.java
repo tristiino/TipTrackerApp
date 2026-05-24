@@ -49,6 +49,11 @@ public class SettingsService {
         UserSettings settings = userSettingsRepository.findByUser(user)
                 .orElseGet(() -> createDefaults(user));
 
+        if (dto.getReminderDayOfWeek() != null &&
+                (dto.getReminderDayOfWeek() < 0 || dto.getReminderDayOfWeek() > 6)) {
+            throw new IllegalArgumentException("reminderDayOfWeek must be between 0 (Sunday) and 6 (Saturday)");
+        }
+
         settings.setTheme(dto.getTheme());
         settings.setLanguage(dto.getLanguage());
         settings.setTaxRate(dto.getTaxRate());
@@ -57,6 +62,9 @@ public class SettingsService {
         settings.setMorningStart(dto.getMorningStart());
         settings.setEveningStart(dto.getEveningStart());
         settings.setNightStart(dto.getNightStart());
+        settings.setNotificationsEnabled(dto.isNotificationsEnabled());
+        settings.setReminderDayOfWeek(dto.getReminderDayOfWeek());
+        settings.setReminderTime(dto.getReminderTime());
 
         return toDTO(userSettingsRepository.save(settings));
     }
@@ -73,6 +81,9 @@ public class SettingsService {
         defaults.setMorningStart(LocalTime.of(6, 0));
         defaults.setEveningStart(LocalTime.of(14, 0));
         defaults.setNightStart(LocalTime.of(21, 0));
+        defaults.setNotificationsEnabled(false);
+        defaults.setReminderDayOfWeek(0);
+        defaults.setReminderTime(LocalTime.of(18, 0));
         return userSettingsRepository.save(defaults);
     }
 
@@ -91,6 +102,9 @@ public class SettingsService {
         dto.setMorningStart(settings.getMorningStart());
         dto.setEveningStart(settings.getEveningStart());
         dto.setNightStart(settings.getNightStart());
+        dto.setNotificationsEnabled(settings.isNotificationsEnabled());
+        dto.setReminderDayOfWeek(settings.getReminderDayOfWeek());
+        dto.setReminderTime(settings.getReminderTime());
         return dto;
     }
 }
