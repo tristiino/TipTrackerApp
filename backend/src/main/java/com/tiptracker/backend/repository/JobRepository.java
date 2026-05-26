@@ -1,6 +1,7 @@
 package com.tiptracker.backend.repository;
 
 import com.tiptracker.backend.model.Job;
+import com.tiptracker.backend.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -13,4 +14,6 @@ public interface JobRepository extends JpaRepository<Job, Long> {
     Optional<Job> findByIdAndUserUsername(Long id, String username);
 
     int countByUserUsername(String username);
+
+    void deleteByUser(User user);
 }

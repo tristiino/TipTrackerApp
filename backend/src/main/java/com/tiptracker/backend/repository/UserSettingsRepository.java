@@ -20,6 +20,8 @@ public interface UserSettingsRepository extends JpaRepository<UserSettings, Long
 
     Optional<UserSettings> findByUser(User user);
 
+    void deleteByUser(User user);
+
     @Query("SELECT s FROM UserSettings s " +
            "WHERE s.notificationsEnabled = true " +
            "AND s.reminderDayOfWeek = :dow " +

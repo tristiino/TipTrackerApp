@@ -24,6 +24,14 @@ public interface TipOutRecordRepository extends JpaRepository<TipOutRecord, Long
     void deleteByTipEntry(TipEntry tipEntry);
 
     /**
+     * Bulk-deletes all tip-out records belonging to a user's shifts.
+     * Used during account deletion — must run BEFORE tip_entry rows are deleted.
+     */
+    @Modifying
+    @Query("DELETE FROM TipOutRecord r WHERE r.tipEntry.user.id = :userId")
+    void deleteByTipEntryUserId(@Param("userId") Long userId);
+
+    /**
      * Sums all finalAmounts for a user's shifts within a date range.
      * Used by getDashboardSummary and getReportSummary to compute
      * period-level totals without loading every individual record.
