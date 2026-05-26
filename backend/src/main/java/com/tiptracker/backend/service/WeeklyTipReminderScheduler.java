@@ -29,7 +29,7 @@ public class WeeklyTipReminderScheduler {
     private final UserSettingsRepository userSettingsRepository;
     private final NotificationService notificationService;
 
-    @Scheduled(cron = "0 * * * * *")
+    @Scheduled(cron = "0 0,15,30,45 * * * *")
     public void sendWeeklyReminders() {
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
 
