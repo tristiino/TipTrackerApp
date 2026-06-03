@@ -15,13 +15,13 @@ public class EmailService {
 
     public void sendPasswordResetEmail(String toEmail, String token) {
         try {
-            String resetLink = "https://tiptrackerapp.org/reset-password?token=" + token;
+            String resetLink = "https://tipslip.app/reset-password?token=" + token;
 
             SimpleMailMessage message = new SimpleMailMessage();
             message.setTo(toEmail);
-            message.setSubject("Reset your TipTracker password");
+            message.setSubject("Reset your TipSlip password");
             message.setText(
-                    "You requested a password reset for your TipTracker account.\n\n" +
+                    "You requested a password reset for your TipSlip account.\n\n" +
                     "Click the link below to set a new password:\n" +
                     resetLink + "\n\n" +
                     "This link expires in 1 hour.\n\n" +

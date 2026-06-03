@@ -53,6 +53,8 @@ public class SecurityConfig {
                     corsConfig.setAllowedOrigins(List.of(
                             "https://tiptrackerapp.org",
                             "https://www.tiptrackerapp.org",
+                            "https://tipslip.app",
+                            "https://www.tipslip.app",
                             "http://localhost:4200"));
                     corsConfig.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
                     corsConfig.setAllowedHeaders(List.of("*"));
